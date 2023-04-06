@@ -1,0 +1,18 @@
+{
+  "name": "elsa-data-aws-deploy-infrastructure",
+  "version": "1.0.0",
+  "description": "A manually deployable CDK stack for Elsa Data infrastructure in the UMCCR environment",
+  "devDependencies": {
+    "@tsconfig/node18": "1.0.1",
+    "@types/node": "18.15.11",
+    "aws-cdk": "2.72.1",
+    "prettier": "2.8.7",
+    "ts-node": "10.9.1",
+    "typescript": "4.9.5"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "2.72.1",
+    "constructs": "10.1.303",
+    "source-map-support": "0.5.21"
+  }
+}
