@@ -39,7 +39,7 @@ new InfrastructureStack(app, "ElsaDataLocalDevTestInfrastructureStack", {
   database: {
     instanceType: InstanceType.of(
       InstanceClass.BURSTABLE4_GRAVITON,
-      InstanceSize.MICRO
+      InstanceSize.SMALL
     ),
     dbAdminUser: `elsa_admin`,
     dbName: `elsa_database`,
