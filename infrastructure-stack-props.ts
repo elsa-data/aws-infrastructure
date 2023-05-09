@@ -16,6 +16,11 @@ export interface InfrastructureStackProps extends StackProps {
   isDevelopment?: boolean;
 
   /**
+   * Forces a new deployment of all stacks by updating the description. Defaults to false.
+   */
+  forceDeployment?: boolean;
+
+  /**
    * The description of the infrastructure as used for the CloudFormation stack.
    * This gives devops an immediate feedback on the purpose of the stack so
    * should be descriptive of the service/project.

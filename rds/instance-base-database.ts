@@ -1,6 +1,6 @@
 import { InstanceType, IVpc } from "aws-cdk-lib/aws-ec2";
 import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
-import { aws_ec2 as ec2, aws_rds as rds, RemovalPolicy } from "aws-cdk-lib";
+import {aws_ec2 as ec2, aws_rds as rds, Duration, RemovalPolicy} from "aws-cdk-lib";
 import { DatabaseInstance, PostgresEngineVersion } from "aws-cdk-lib/aws-rds";
 import { Construct } from "constructs";
 import { BaseDatabase } from "./base-database";
@@ -50,7 +50,7 @@ export class InstanceBaseDatabase extends BaseDatabase {
         ? RemovalPolicy.DESTROY
         : RemovalPolicy.SNAPSHOT,
       engine: rds.DatabaseInstanceEngine.postgres({
-        version: props.overridePostgresVersion ?? PostgresEngineVersion.VER_15,
+        version: props.overridePostgresVersion ?? PostgresEngineVersion.VER_13,
       }),
       credentials: rds.Credentials.fromSecret(props.secret),
       deleteAutomatedBackups: props.destroyOnRemove,
@@ -59,12 +59,16 @@ export class InstanceBaseDatabase extends BaseDatabase {
       databaseName: props.databaseName,
       instanceType: props.instanceType,
       allocatedStorage: props.overrideAllocatedStorage ?? 20,
+      maxAllocatedStorage: 100,
       vpc: props.vpc,
       vpcSubnets: {
         subnetType: props.makePubliclyReachable
           ? ec2.SubnetType.PUBLIC
           : ec2.SubnetType.PRIVATE_ISOLATED,
       },
+      cloudwatchLogsExports: ["postgresql"],
+      enablePerformanceInsights: true,
+      monitoringInterval: Duration.seconds(5),
     });
 
     this._dsnWithTokens =

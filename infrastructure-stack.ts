@@ -27,7 +27,7 @@ import { HttpNamespace } from "aws-cdk-lib/aws-servicediscovery";
  */
 export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props: InfrastructureStackProps) {
-    super(scope, id, props);
+    super(scope, id, { ...props, ...(props.forceDeployment && { description: `${new Date()}` }) });
 
     this.templateOptions.description = props.description;
 

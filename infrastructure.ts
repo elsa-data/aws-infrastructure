@@ -25,6 +25,7 @@ new InfrastructureStack(app, "ElsaDataLocalDevTestInfrastructureStack", {
   },
   tags: tags,
   isDevelopment: true,
+  forceDeployment: true,
   description: description,
   network: {
     // use the dev VPC that already exists
@@ -47,32 +48,32 @@ new InfrastructureStack(app, "ElsaDataLocalDevTestInfrastructureStack", {
   secretsPrefix: "ElsaData", // pragma: allowlist secret
 });
 
-new InfrastructureStack(app, "ElsaDataAustralianGenomicsInfrastructureStack", {
-  // the pipeline can only be deployed to 'ag'
-  env: {
-    account: "602836945884",
-    region: "ap-southeast-2",
-  },
-  tags: tags,
-  isDevelopment: false,
-  description: description,
-  network: {
-    // we want it to construct a new custom VPC to limit possible breach surface
-    vpcNameOrDefaultOrNull: null,
-  },
-  namespace: {
-    name: ns,
-  },
-  dns: {
-    hostedZoneName: "agha.umccr.org",
-  },
-  database: {
-    instanceType: InstanceType.of(
-      InstanceClass.BURSTABLE4_GRAVITON,
-      InstanceSize.SMALL
-    ),
-    dbAdminUser: `elsa_admin`,
-    dbName: `elsa_database`,
-  },
-  secretsPrefix: "ElsaData", // pragma: allowlist secret
-});
+// new InfrastructureStack(app, "ElsaDataAustralianGenomicsInfrastructureStack", {
+//   // the pipeline can only be deployed to 'ag'
+//   env: {
+//     account: "602836945884",
+//     region: "ap-southeast-2",
+//   },
+//   tags: tags,
+//   isDevelopment: false,
+//   description: description,
+//   network: {
+//     // we want it to construct a new custom VPC to limit possible breach surface
+//     vpcNameOrDefaultOrNull: null,
+//   },
+//   namespace: {
+//     name: ns,
+//   },
+//   dns: {
+//     hostedZoneName: "agha.umccr.org",
+//   },
+//   database: {
+//     instanceType: InstanceType.of(
+//       InstanceClass.BURSTABLE4_GRAVITON,
+//       InstanceSize.SMALL
+//     ),
+//     dbAdminUser: `elsa_admin`,
+//     dbName: `elsa_database`,
+//   },
+//   secretsPrefix: "ElsaData", // pragma: allowlist secret
+// });
