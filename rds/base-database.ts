@@ -1,5 +1,4 @@
 import { Construct } from "constructs";
-import { aws_ec2 as ec2 } from "aws-cdk-lib";
 import { ISecurityGroup } from "aws-cdk-lib/aws-ec2";
 
 /**
@@ -15,11 +14,11 @@ export abstract class BaseDatabase extends Construct {
 
   public abstract get dsnWithTokens(): string;
 
+  public abstract get dsnNoPassword(): string;
+
   public abstract get hostname(): string;
 
   public abstract get port(): number;
 
   public abstract get securityGroup(): ISecurityGroup;
-
-  public abstract connections(): ec2.Connections;
 }

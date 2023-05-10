@@ -1,4 +1,4 @@
-import { ISecurityGroup, IVpc } from "aws-cdk-lib/aws-ec2";
+import { ISecurityGroup, IVpc, SecurityGroup } from "aws-cdk-lib/aws-ec2";
 import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
 import { ServerlessCluster } from "aws-cdk-lib/aws-rds";
 import { Construct } from "constructs";
@@ -12,6 +12,12 @@ interface ServerlessBaseDatabaseProps {
 
   vpc: IVpc;
 
+  // the database admin user - whilst this *is* stored inside the secret
+  // we cannot get it out other than using CDK tokens. Given the outer stack
+  // will know this as a real value *and* it is not actually a secret itself,
+  // we pass it in for use in DSNs.
+  databaseAdminUser: string;
+
   secret: ISecret;
 }
 
@@ -21,7 +27,9 @@ interface ServerlessBaseDatabaseProps {
  */
 export class ServerlessBaseDatabase extends BaseDatabase {
   private readonly _cluster: ServerlessCluster;
-  private readonly _dsn: string;
+  private readonly _securityGroup: SecurityGroup;
+  private readonly _dsnWithTokens: string;
+  private readonly _dsnNoPassword: string;
 
   constructor(
     scope: Construct,
@@ -30,8 +38,25 @@ export class ServerlessBaseDatabase extends BaseDatabase {
   ) {
     super(scope, id);
 
+    // we create a security group and export its id - so we can use that as a security boundary
+    // for services that "can connect to database"
+    this._securityGroup = new SecurityGroup(
+      scope,
+      "ServerlessClusterSecurityGroup",
+      {
+        vpc: props.vpc,
+        // databases don't use outbound traffic via a security group unless you are getting them to reach
+        // out via a stored procedure or something
+        allowAllOutbound: false,
+        allowAllIpv6Outbound: false,
+        description:
+          "Security group for resources that can communicate to the contained RDS instance",
+      }
+    );
+
     this._cluster = new ServerlessCluster(this, "ServerlessCluster", {
       vpc: props.vpc,
+      securityGroups: [this._securityGroup],
       vpcSubnets: {
         subnetType: props.isDevelopment
           ? ec2.SubnetType.PUBLIC
@@ -73,7 +98,7 @@ export class ServerlessBaseDatabase extends BaseDatabase {
       publiclyAccessible: !!props.isDevelopment,
     });
 
-    this._dsn =
+    this._dsnWithTokens =
       `postgres://` +
       `${props.secret.secretValueFromJson("username").unsafeUnwrap()}` +
       `:` +
@@ -84,10 +109,18 @@ export class ServerlessBaseDatabase extends BaseDatabase {
       `${this._cluster.clusterEndpoint.port}` +
       `/` +
       `${props.databaseName}`;
+
+    this._dsnNoPassword =
+      `postgres://` +
+      `${props.databaseAdminUser}@${this._cluster.clusterEndpoint.hostname}:${this._cluster.clusterEndpoint.port}/${props.databaseName}`;
   }
 
   public get dsnWithTokens(): string {
-    return this._dsn;
+    return this._dsnWithTokens;
+  }
+
+  public get dsnNoPassword(): string {
+    return this._dsnNoPassword;
   }
 
   public get hostname(): string {
@@ -99,7 +132,7 @@ export class ServerlessBaseDatabase extends BaseDatabase {
   }
 
   public get securityGroup(): ISecurityGroup {
-    throw new Error("Not implemented SecurityGroup for serverless");
+    return this._securityGroup;
   }
 
   public connections(): ec2.Connections {

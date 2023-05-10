@@ -2,6 +2,7 @@ import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
 import { InfrastructureStack } from "./infrastructure-stack";
 import { InstanceClass, InstanceSize, InstanceType } from "aws-cdk-lib/aws-ec2";
+import { AuroraCapacityUnit } from "aws-cdk-lib/aws-rds";
 
 const app = new cdk.App();
 
@@ -73,6 +74,22 @@ new InfrastructureStack(
       instanceType: InstanceType.of(InstanceClass.T3, InstanceSize.MEDIUM),
       dbAdminUser: `elsa_admin`,
       dbName: `elsa_database`,
+    },
+    databases: {
+      "pg-elsa-data": {
+        type: "postgres-instance",
+        instanceType: InstanceType.of(
+          InstanceClass.BURSTABLE4_GRAVITON,
+          InstanceSize.MEDIUM
+        ),
+        adminUser: "admin",
+      },
+      "pg-serverless-elsa-data": {
+        type: "postgres-serverless-2",
+        minCapacity: 0.5,
+        maxCapacity: AuroraCapacityUnit.ACU_2,
+        adminUser: "admin",
+      },
     },
     secretsPrefix: "ElsaDataDemo", // pragma: allowlist secret
   }

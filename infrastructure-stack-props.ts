@@ -1,5 +1,40 @@
-import { StackProps } from "aws-cdk-lib";
-import { InstanceType } from "aws-cdk-lib/aws-ec2";
+import { aws_rds as rds, StackProps } from "aws-cdk-lib";
+import { InstanceType, IVpc } from "aws-cdk-lib/aws-ec2";
+import { PostgresEngineVersion } from "aws-cdk-lib/aws-rds";
+import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
+
+export type PostgresCommon = {
+  // the name of the admin user to create in the database
+  adminUser: string;
+
+  // if present and true, will set the database such that it will autodelete/autoremove when the stack is destroyed
+  destroyOnRemove?: boolean;
+
+  // if present and true, will place the database such that it can be reached from public IP addresses
+  makePubliclyReachable?: boolean;
+
+  // if set will override the allocated storage for the db - otherwise
+  // we will have this set to smallest database size allowed (20 Gib)
+  overrideAllocatedStorage?: number;
+};
+
+export type PostgresInstance = PostgresCommon & {
+  type: "postgres-instance";
+
+  instanceType: InstanceType;
+
+  // if set will override the postgres engine used - otherwise
+  // we will make this by default aggressively track the latest postgres release
+  overridePostgresVersion?: PostgresEngineVersion;
+};
+
+export type PostgresServerlessV2 = PostgresCommon & {
+  type: "postgres-serverless-2";
+
+  minCapacity: number;
+
+  maxCapacity: number;
+};
 
 export interface InfrastructureStackProps extends StackProps {
   /**
@@ -54,6 +89,10 @@ export interface InfrastructureStackProps extends StackProps {
     instanceType: InstanceType;
     dbAdminUser: string;
     dbName: string;
+  };
+
+  databases?: {
+    [name: string]: PostgresInstance | PostgresServerlessV2;
   };
 
   // a prefix that is used for constructing any AWS secrets (i.e. postgres password)

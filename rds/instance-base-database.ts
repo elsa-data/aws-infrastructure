@@ -91,11 +91,19 @@ export class InstanceBaseDatabase extends BaseDatabase {
       },
     });
 
-    // this security group can only be connected to on default db port and only from things in the security group
-    this._securityGroup.addIngressRule(
-      this._securityGroup,
-      ec2.Port.tcp(this._instance.instanceEndpoint.port)
-    );
+    if (props.makePubliclyReachable) {
+      // we allow access from all the internet to the default db port
+      this._securityGroup.addIngressRule(
+        ec2.Peer.anyIpv4(),
+        ec2.Port.tcp(this._instance.instanceEndpoint.port)
+      );
+    } else {
+      // the db security group can only be connected to on the default db port and only from things ALSO IN THE SAME SECURITY GROUP
+      this._securityGroup.addIngressRule(
+        this._securityGroup,
+        ec2.Port.tcp(this._instance.instanceEndpoint.port)
+      );
+    }
 
     this._dsnWithTokens =
       `postgres://` +
