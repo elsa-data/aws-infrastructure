@@ -25,4 +25,5 @@ Infrastructure includes
 This repo currently has settings for manual deployment to
 
 - UMCCR dev `npx cdk deploy ElsaDataAustralianGenomicsInfrastructureStack`
+- Australian Genomics Demo `npx cdk deploy ElsaDataDemoAustralianGenomicsInfrastructureStack`
 - Australian Genomics `npx cdk deploy ElsaDataAustralianGenomicsInfrastructureStack`

@@ -1,4 +1,11 @@
-import { InstanceType, IVpc } from "aws-cdk-lib/aws-ec2";
+import {
+  InstanceType,
+  ISecurityGroup,
+  IVpc,
+  Port,
+  Protocol,
+  SecurityGroup,
+} from "aws-cdk-lib/aws-ec2";
 import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
 import { aws_ec2 as ec2, aws_rds as rds, RemovalPolicy } from "aws-cdk-lib";
 import { DatabaseInstance, PostgresEngineVersion } from "aws-cdk-lib/aws-rds";
@@ -10,6 +17,7 @@ export interface InstanceBaseDatabaseProps {
 
   vpc: IVpc;
 
+  // the secret of the database admin password to use
   secret: ISecret;
 
   // the database admin user - whilst this *is* stored inside the secret
@@ -20,8 +28,10 @@ export interface InstanceBaseDatabaseProps {
 
   instanceType: InstanceType;
 
+  // if present and true, will set the database such that it will autodelete/autoremove when the stack is destroyed
   destroyOnRemove?: boolean;
 
+  // if present and true, will place the database such that it can be reached from public IP addresses
   makePubliclyReachable?: boolean;
 
   // if set will override the postgres engine used - otherwise
@@ -39,33 +49,53 @@ export interface InstanceBaseDatabaseProps {
  */
 export class InstanceBaseDatabase extends BaseDatabase {
   private readonly _instance: DatabaseInstance;
+  private readonly _securityGroup: SecurityGroup;
   private readonly _dsnWithTokens: string;
   private readonly _dsnNoPassword: string;
 
   constructor(scope: Construct, id: string, props: InstanceBaseDatabaseProps) {
     super(scope, id);
 
+    // we create a security group and export its id - so we can use that as a security boundary
+    // for services that "can connect to database"
+    this._securityGroup = new SecurityGroup(scope, "DatabaseSecurityGroup", {
+      vpc: props.vpc,
+      // databases don't use outbound traffic via a security group unless you are getting them to reach
+      // out via a stored procedure or something
+      allowAllOutbound: false,
+      allowAllIpv6Outbound: false,
+      description:
+        "Security group for resources that can communicate to the contained RDS instance",
+    });
+
     this._instance = new DatabaseInstance(scope, "DatabaseInstance", {
+      databaseName: props.databaseName,
       removalPolicy: props.destroyOnRemove
         ? RemovalPolicy.DESTROY
         : RemovalPolicy.SNAPSHOT,
-      engine: rds.DatabaseInstanceEngine.postgres({
-        version: props.overridePostgresVersion ?? PostgresEngineVersion.VER_15,
-      }),
       credentials: rds.Credentials.fromSecret(props.secret),
       deleteAutomatedBackups: props.destroyOnRemove,
       // base AWS encryption at rest
       storageEncrypted: true,
-      databaseName: props.databaseName,
+      engine: rds.DatabaseInstanceEngine.postgres({
+        version: props.overridePostgresVersion ?? PostgresEngineVersion.VER_15,
+      }),
       instanceType: props.instanceType,
       allocatedStorage: props.overrideAllocatedStorage ?? 20,
       vpc: props.vpc,
+      securityGroups: [this._securityGroup],
       vpcSubnets: {
         subnetType: props.makePubliclyReachable
           ? ec2.SubnetType.PUBLIC
           : ec2.SubnetType.PRIVATE_ISOLATED,
       },
     });
+
+    // this security group can only be connected to on default db port and only from things in the security group
+    this._securityGroup.addIngressRule(
+      this._securityGroup,
+      ec2.Port.tcp(this._instance.instanceEndpoint.port)
+    );
 
     this._dsnWithTokens =
       `postgres://` +
@@ -93,6 +123,10 @@ export class InstanceBaseDatabase extends BaseDatabase {
 
   public get port(): number {
     return this._instance.instanceEndpoint.port;
+  }
+
+  public get securityGroup(): ISecurityGroup {
+    return this._securityGroup;
   }
 
   public connections() {

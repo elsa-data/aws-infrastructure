@@ -16,6 +16,7 @@ import {
 import { InfrastructureStackProps } from "./infrastructure-stack-props";
 import { StringListParameter, StringParameter } from "aws-cdk-lib/aws-ssm";
 import { HttpNamespace } from "aws-cdk-lib/aws-servicediscovery";
+import { SecurityGroup } from "aws-cdk-lib/aws-ec2";
 
 /**
  * A basic infrastructure stack that supports
@@ -80,6 +81,16 @@ export class InfrastructureStack extends Stack {
       stringListValue: vpc.isolatedSubnets.map(
         (a) => a.routeTable.routeTableId
       ),
+    });
+
+    const sg = new SecurityGroup(this, "SecurityGroup", {
+      vpc: vpc,
+      description: "Security group for general resources in the VPC",
+    });
+
+    new StringParameter(this, "SecurityGroupIdParameter", {
+      parameterName: `/${id}/VPC/securityGroupId`,
+      stringValue: sg.securityGroupId,
     });
 
     // the temp bucket is a useful artifact to allow us to construct S3 objects
@@ -258,8 +269,10 @@ export class InfrastructureStack extends Stack {
       });
 
       if (props.isDevelopment) {
+        // in development we allow connections from anywhere - though the database is
+        // not necessarily in a reachable subnet...
         baseDb.connections().allowDefaultPortFromAnyIpv4();
-      } else baseDb.connections().allowDefaultPortInternally();
+      }
 
       // TODO this actually resolves our tokens as it stores it - which is not what
       // new StringParameter(this, "DatabaseDsnWithTokensParameter", {
@@ -301,6 +314,11 @@ export class InfrastructureStack extends Stack {
       new StringParameter(this, "DatabaseDbAdminSecretArnParameter", {
         parameterName: `/${id}/Database/adminPasswordSecretArn`,
         stringValue: baseDbSecret.secretArn,
+      });
+
+      new StringParameter(this, "DatabaseSecurityGroupParameter", {
+        parameterName: `/${id}/Database/securityGroupId`,
+        stringValue: baseDb.securityGroup.securityGroupId,
       });
     }
   }

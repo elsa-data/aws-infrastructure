@@ -1,5 +1,6 @@
 import { Construct } from "constructs";
 import { aws_ec2 as ec2 } from "aws-cdk-lib";
+import { ISecurityGroup } from "aws-cdk-lib/aws-ec2";
 
 /**
  * An abstract concept that helps us wrap the CDK concepts of
@@ -17,6 +18,8 @@ export abstract class BaseDatabase extends Construct {
   public abstract get hostname(): string;
 
   public abstract get port(): number;
+
+  public abstract get securityGroup(): ISecurityGroup;
 
   public abstract connections(): ec2.Connections;
 }

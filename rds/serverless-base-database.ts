@@ -1,4 +1,4 @@
-import { IVpc } from "aws-cdk-lib/aws-ec2";
+import { ISecurityGroup, IVpc } from "aws-cdk-lib/aws-ec2";
 import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
 import { ServerlessCluster } from "aws-cdk-lib/aws-rds";
 import { Construct } from "constructs";
@@ -96,6 +96,10 @@ export class ServerlessBaseDatabase extends BaseDatabase {
 
   public get port(): number {
     return this._cluster.clusterEndpoint.port;
+  }
+
+  public get securityGroup(): ISecurityGroup {
+    throw new Error("Not implemented SecurityGroup for serverless");
   }
 
   public connections(): ec2.Connections {

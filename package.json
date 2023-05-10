@@ -1,18 +1,27 @@
 {
   "name": "elsa-data-aws-deploy-infrastructure",
   "version": "1.0.0",
+  "private": true,
   "description": "A manually deployable CDK stack for Elsa Data infrastructure in the UMCCR environment",
+  "scripts": {
+    "dev-deploy": "cdk --app 'npx ts-node infrastructure.ts' deploy ElsaDataLocalDevTestInfrastructureStack",
+    "dev-destroy": "cdk --app 'npx ts-node infrastructure.ts' destroy ElsaDataLocalDevTestInfrastructureStack",
+    "agdemo-deploy": "cdk --app 'npx ts-node infrastructure.ts' deploy ElsaDataDemoAustralianGenomicsInfrastructureStack",
+    "agdemo-destroy": "cdk --app 'npx ts-node infrastructure.ts' destroy ElsaDataDemoAustralianGenomicsInfrastructureStack",
+    "ag-deploy": "cdk --app 'npx ts-node infrastructure.ts' deploy ElsaDataAustralianGenomicsInfrastructureStack",
+    "ag-destroy": "cdk --app 'npx ts-node infrastructure.ts' destroy ElsaDataAustralianGenomicsInfrastructureStack"
+  },
   "devDependencies": {
-    "@tsconfig/node18": "1.0.1",
-    "@types/node": "18.15.11",
-    "aws-cdk": "2.72.1",
-    "prettier": "2.8.7",
+    "@tsconfig/node18": "2.0.0",
+    "@types/node": "18.16.3",
+    "aws-cdk": "2.77.0",
+    "prettier": "2.8.8",
     "ts-node": "10.9.1",
-    "typescript": "4.9.5"
+    "typescript": "5.0.4"
   },
   "dependencies": {
-    "aws-cdk-lib": "2.72.1",
-    "constructs": "10.1.303",
+    "aws-cdk-lib": "2.77.0",
+    "constructs": "10.2.13",
     "source-map-support": "0.5.21"
   }
 }
