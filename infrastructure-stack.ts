@@ -258,7 +258,7 @@ export class InfrastructureStack extends Stack {
           enableMonitoring: props.database.enableMonitoring,
         });
       } else {
-        baseDb = new ServerlessBaseDatabase(this, "BaseDb", {
+        baseDb = new ServerlessBaseDatabase(this, "RdsServerless", {
           isDevelopment: props.isDevelopment,
           vpc: vpc,
           databaseName: props.database.dbName,

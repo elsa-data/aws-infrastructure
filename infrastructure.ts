@@ -12,9 +12,6 @@ const tags = {
   "umccr-org:Product": "ElsaData",
 };
 
-// the CloudMap namespace to create associated with this VPC
-const ns = "elsa-data";
-
 const description =
   "Infrastructure for Elsa Data - an application for controlled genomic data sharing";
 
@@ -33,7 +30,7 @@ new InfrastructureStack(app, "ElsaDataLocalDevTestInfrastructureStack", {
     vpcNameOrDefaultOrNull: "main-vpc",
   },
   namespace: {
-    name: ns,
+    name: "elsa-data",
   },
   dns: {
     hostedZoneName: "dev.umccr.org",
@@ -70,7 +67,7 @@ new InfrastructureStack(app, "ElsaDataServerlessLocalDevTestInfrastructureStack"
     vpcNameOrDefaultOrNull: "main-vpc",
   },
   namespace: {
-    name: ns,
+    name: "elsa-data-serverless",
   },
   dns: {
     hostedZoneName: "dev.umccr.org",
@@ -102,7 +99,7 @@ new InfrastructureStack(app, "ElsaDataAustralianGenomicsInfrastructureStack", {
     vpcNameOrDefaultOrNull: null,
   },
   namespace: {
-    name: ns,
+    name: "elsa-data",
   },
   dns: {
     hostedZoneName: "agha.umccr.org",

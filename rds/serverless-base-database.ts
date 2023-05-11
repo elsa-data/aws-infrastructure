@@ -4,6 +4,7 @@ import { ServerlessCluster } from "aws-cdk-lib/aws-rds";
 import { Construct } from "constructs";
 import {aws_ec2 as ec2, aws_rds as rds, Duration, RemovalPolicy} from "aws-cdk-lib";
 import { BaseDatabase } from "./base-database";
+import {ManagedPolicy, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
 
 interface ServerlessBaseDatabaseProps {
   isDevelopment?: boolean;
@@ -69,16 +70,27 @@ export class ServerlessBaseDatabase extends BaseDatabase {
       cfnDBCluster.engineMode = undefined;
     }
 
+    let enableMonitoring;
+    if (props.enableMonitoring) {
+      const monitoringRole = new Role(this, "DatabaseMonitoringRole", {
+        assumedBy: new ServicePrincipal("monitoring.rds.amazonaws.com")
+      });
+      monitoringRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("service-role/AmazonRDSEnhancedMonitoringRole"));
+
+      enableMonitoring = {
+        enablePerformanceInsights: props.enableMonitoring.enablePerformanceInsights,
+        cloudwatchLogsExports: props.enableMonitoring.cloudwatchLogsExports,
+        monitoringInterval: props.enableMonitoring.monitoringInterval.toSeconds(),
+        monitoringRoleArn: monitoringRole.roleArn,
+      };
+    }
+
     const writerInstance = new rds.CfnDBInstance(this, "Writer", {
       dbInstanceClass: "db.serverless",
       dbClusterIdentifier: this._cluster.clusterIdentifier,
       engine: "aurora-postgresql",
       publiclyAccessible: !!props.isDevelopment,
-      ...(props.enableMonitoring && {
-        enablePerformanceInsights: props.enableMonitoring.enablePerformanceInsights,
-        cloudwatchLogsExports: props.enableMonitoring.cloudwatchLogsExports,
-        monitoringInterval: props.enableMonitoring.monitoringInterval.toSeconds(),
-      })
+      ...(enableMonitoring && {...enableMonitoring})
     });
 
     this._dsnWithTokens =
