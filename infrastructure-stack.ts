@@ -255,6 +255,7 @@ export class InfrastructureStack extends Stack {
         instanceType: props.database.instanceType,
         destroyOnRemove: props.isDevelopment,
         makePubliclyReachable: props.isDevelopment,
+        enableMonitoring: props.database.enableMonitoring,
       });
 
       if (props.isDevelopment) {

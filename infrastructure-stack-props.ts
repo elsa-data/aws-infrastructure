@@ -1,4 +1,4 @@
-import { StackProps } from "aws-cdk-lib";
+import {Duration, StackProps} from "aws-cdk-lib";
 import { InstanceType } from "aws-cdk-lib/aws-ec2";
 
 export interface InfrastructureStackProps extends StackProps {
@@ -59,6 +59,12 @@ export interface InfrastructureStackProps extends StackProps {
     instanceType: InstanceType;
     dbAdminUser: string;
     dbName: string;
+    // Allow monitoring features such as postgres logs exported to cloudwatch and performance insights.
+    enableMonitoring?: {
+      cloudwatchLogsExports: string[],
+      enablePerformanceInsights: true,
+      monitoringInterval: Duration,
+    };
   };
 
   // a prefix that is used for constructing any AWS secrets (i.e. postgres password)
