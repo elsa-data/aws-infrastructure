@@ -55,8 +55,8 @@ export interface InfrastructureStackProps extends StackProps {
 
   // the configuration of the postgres instance which will be created
   database?: {
-    // type: "serverless" | "instance";
-    instanceType: InstanceType;
+    type: "serverless" | "instance";
+    instanceType?: InstanceType;
     dbAdminUser: string;
     dbName: string;
     // Allow monitoring features such as postgres logs exported to cloudwatch and performance insights.

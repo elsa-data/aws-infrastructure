@@ -52,7 +52,6 @@ export class InstanceBaseDatabase extends BaseDatabase {
   constructor(scope: Construct, id: string, props: InstanceBaseDatabaseProps) {
     super(scope, id);
 
-    // EdgeDb does not yet fully support version 15 of postgres
     const engine = rds.DatabaseInstanceEngine.postgres({
         version: props.overridePostgresVersion ?? PostgresEngineVersion.VER_14,
       });

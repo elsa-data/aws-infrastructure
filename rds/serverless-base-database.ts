@@ -2,7 +2,7 @@ import { IVpc } from "aws-cdk-lib/aws-ec2";
 import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
 import { ServerlessCluster } from "aws-cdk-lib/aws-rds";
 import { Construct } from "constructs";
-import { aws_ec2 as ec2, aws_rds as rds, RemovalPolicy } from "aws-cdk-lib";
+import {aws_ec2 as ec2, aws_rds as rds, Duration, RemovalPolicy} from "aws-cdk-lib";
 import { BaseDatabase } from "./base-database";
 
 interface ServerlessBaseDatabaseProps {
@@ -13,6 +13,15 @@ interface ServerlessBaseDatabaseProps {
   vpc: IVpc;
 
   secret: ISecret;
+
+  databaseAdminUser: string;
+
+  // Allow monitoring features such as postgres logs exported to cloudwatch and performance insights.
+  enableMonitoring?: {
+    cloudwatchLogsExports: string[],
+    enablePerformanceInsights: true,
+    monitoringInterval: Duration,
+  };
 }
 
 /**
@@ -21,7 +30,8 @@ interface ServerlessBaseDatabaseProps {
  */
 export class ServerlessBaseDatabase extends BaseDatabase {
   private readonly _cluster: ServerlessCluster;
-  private readonly _dsn: string;
+  private readonly _dsnWithTokens: string;
+  private readonly _dsnNoPassword: string;
 
   constructor(
     scope: Construct,
@@ -37,14 +47,7 @@ export class ServerlessBaseDatabase extends BaseDatabase {
           ? ec2.SubnetType.PUBLIC
           : ec2.SubnetType.PRIVATE_ISOLATED,
       },
-      // engine: rds.DatabaseClusterEngine.auroraPostgres({ version: rds.AuroraPostgresEngineVersion.VER_14_3 }),
-      // create engine version 14.4 as not yet added in CDK
-      engine: rds.DatabaseClusterEngine.auroraPostgres({
-        version: rds.AuroraPostgresEngineVersion.of("14.4", "14", {
-          s3Import: true,
-          s3Export: true,
-        }),
-      }),
+      engine: rds.DatabaseClusterEngine.auroraPostgres({ version: rds.AuroraPostgresEngineVersion.VER_14_6 }),
       // the default database to create in the cluster - we insist on it being named otherwise no default db is made
       defaultDatabaseName: props.databaseName,
       credentials: rds.Credentials.fromSecret(props.secret),
@@ -71,9 +74,14 @@ export class ServerlessBaseDatabase extends BaseDatabase {
       dbClusterIdentifier: this._cluster.clusterIdentifier,
       engine: "aurora-postgresql",
       publiclyAccessible: !!props.isDevelopment,
+      ...(props.enableMonitoring && {
+        enablePerformanceInsights: props.enableMonitoring.enablePerformanceInsights,
+        cloudwatchLogsExports: props.enableMonitoring.cloudwatchLogsExports,
+        monitoringInterval: props.enableMonitoring.monitoringInterval.toSeconds(),
+      })
     });
 
-    this._dsn =
+    this._dsnWithTokens =
       `postgres://` +
       `${props.secret.secretValueFromJson("username").unsafeUnwrap()}` +
       `:` +
@@ -84,10 +92,18 @@ export class ServerlessBaseDatabase extends BaseDatabase {
       `${this._cluster.clusterEndpoint.port}` +
       `/` +
       `${props.databaseName}`;
+
+    this._dsnNoPassword =
+      `postgres://` +
+      `${props.databaseAdminUser}@${this._cluster.clusterEndpoint.hostname}:${this._cluster.clusterEndpoint.port}/${props.databaseName}`;
   }
 
   public get dsnWithTokens(): string {
-    return this._dsn;
+    return this._dsnWithTokens;
+  }
+
+  public get dsnNoPassword(): string {
+    return this._dsnNoPassword;
   }
 
   public get hostname(): string {

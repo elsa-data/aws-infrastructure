@@ -14,6 +14,8 @@ export abstract class BaseDatabase extends Construct {
 
   public abstract get dsnWithTokens(): string;
 
+  public abstract get dsnNoPassword(): string;
+
   public abstract get hostname(): string;
 
   public abstract get port(): number;
