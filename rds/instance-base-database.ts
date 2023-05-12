@@ -1,7 +1,7 @@
 import { InstanceType, IVpc } from "aws-cdk-lib/aws-ec2";
 import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
-import { aws_ec2 as ec2, aws_rds as rds, RemovalPolicy } from "aws-cdk-lib";
-import { DatabaseInstance, PostgresEngineVersion } from "aws-cdk-lib/aws-rds";
+import {aws_ec2 as ec2, aws_rds as rds, Duration, RemovalPolicy} from "aws-cdk-lib";
+import {DatabaseInstance, PostgresEngineVersion} from "aws-cdk-lib/aws-rds";
 import { Construct } from "constructs";
 import { BaseDatabase } from "./base-database";
 
@@ -31,6 +31,13 @@ export interface InstanceBaseDatabaseProps {
   // if set will override the allocated storage for the db - otherwsie
   // we will have this set to smallest database size allowed (20 Gib)
   overrideAllocatedStorage?: number;
+
+  // Allow monitoring features such as postgres logs exported to cloudwatch and performance insights.
+  enableMonitoring?: {
+    cloudwatchLogsExports: string[],
+    enablePerformanceInsights: true,
+    monitoringInterval: Duration,
+  };
 }
 
 /**
@@ -45,13 +52,15 @@ export class InstanceBaseDatabase extends BaseDatabase {
   constructor(scope: Construct, id: string, props: InstanceBaseDatabaseProps) {
     super(scope, id);
 
+    const engine = rds.DatabaseInstanceEngine.postgres({
+        version: props.overridePostgresVersion ?? PostgresEngineVersion.VER_14,
+      });
+
     this._instance = new DatabaseInstance(scope, "DatabaseInstance", {
       removalPolicy: props.destroyOnRemove
         ? RemovalPolicy.DESTROY
         : RemovalPolicy.SNAPSHOT,
-      engine: rds.DatabaseInstanceEngine.postgres({
-        version: props.overridePostgresVersion ?? PostgresEngineVersion.VER_15,
-      }),
+      engine: engine,
       credentials: rds.Credentials.fromSecret(props.secret),
       deleteAutomatedBackups: props.destroyOnRemove,
       // base AWS encryption at rest
@@ -59,12 +68,14 @@ export class InstanceBaseDatabase extends BaseDatabase {
       databaseName: props.databaseName,
       instanceType: props.instanceType,
       allocatedStorage: props.overrideAllocatedStorage ?? 20,
+      maxAllocatedStorage: 100,
       vpc: props.vpc,
       vpcSubnets: {
         subnetType: props.makePubliclyReachable
           ? ec2.SubnetType.PUBLIC
           : ec2.SubnetType.PRIVATE_ISOLATED,
       },
+      ...(props.enableMonitoring && { ...props.enableMonitoring })
     });
 
     this._dsnWithTokens =

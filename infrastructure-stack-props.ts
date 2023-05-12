@@ -1,4 +1,4 @@
-import { StackProps } from "aws-cdk-lib";
+import {Duration, StackProps} from "aws-cdk-lib";
 import { InstanceType } from "aws-cdk-lib/aws-ec2";
 
 export interface InfrastructureStackProps extends StackProps {
@@ -14,6 +14,11 @@ export interface InfrastructureStackProps extends StackProps {
    * is as locked down as possible.
    */
   isDevelopment?: boolean;
+
+  /**
+   * Forces a new deployment of all stacks by updating the description. Defaults to false.
+   */
+  forceDeployment?: boolean;
 
   /**
    * The description of the infrastructure as used for the CloudFormation stack.
@@ -50,10 +55,16 @@ export interface InfrastructureStackProps extends StackProps {
 
   // the configuration of the postgres instance which will be created
   database?: {
-    // type: "serverless" | "instance";
-    instanceType: InstanceType;
+    type: "serverless" | "instance";
+    instanceType?: InstanceType;
     dbAdminUser: string;
     dbName: string;
+    // Allow monitoring features such as postgres logs exported to cloudwatch and performance insights.
+    enableMonitoring?: {
+      cloudwatchLogsExports: string[],
+      enablePerformanceInsights: true,
+      monitoringInterval: Duration,
+    };
   };
 
   // a prefix that is used for constructing any AWS secrets (i.e. postgres password)

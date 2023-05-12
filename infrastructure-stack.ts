@@ -16,6 +16,9 @@ import {
 import { InfrastructureStackProps } from "./infrastructure-stack-props";
 import { StringListParameter, StringParameter } from "aws-cdk-lib/aws-ssm";
 import { HttpNamespace } from "aws-cdk-lib/aws-servicediscovery";
+import {BaseDatabase} from "./rds/base-database";
+import {ServerlessBaseDatabase} from "./rds/serverless-base-database";
+import {InstanceClass, InstanceSize, InstanceType} from "aws-cdk-lib/aws-ec2";
 
 /**
  * A basic infrastructure stack that supports
@@ -27,7 +30,7 @@ import { HttpNamespace } from "aws-cdk-lib/aws-servicediscovery";
  */
 export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props: InfrastructureStackProps) {
-    super(scope, id, props);
+    super(scope, id, { ...props, ...(props.forceDeployment && { description: `${new Date()}` }) });
 
     this.templateOptions.description = props.description;
 
@@ -239,23 +242,31 @@ export class InfrastructureStack extends Stack {
         },
       });
 
-      // NOT TESTED - MIGHT BE USEFUL TO BE ABLE TO SWITCH IN A SERVERLESS DB
-      // const baseDb = new ServerlessBaseDatabase(this, "BaseDb", {
-      //       isDevelopment: config.isDevelopment,
-      //       vpc: vpc,
-      //       databaseName: props.config.baseDatabase.dbName,
-      //       secret: baseDbSecret,
-      //     })
-
-      const baseDb = new InstanceBaseDatabase(this, "RdsInstance", {
-        vpc: vpc,
-        databaseName: props.database.dbName,
-        databaseAdminUser: props.database.dbAdminUser,
-        secret: baseDbSecret,
-        instanceType: props.database.instanceType,
-        destroyOnRemove: props.isDevelopment,
-        makePubliclyReachable: props.isDevelopment,
-      });
+      let baseDb: BaseDatabase;
+      if (props.database.type === "instance") {
+        baseDb = new InstanceBaseDatabase(this, "RdsInstance", {
+          vpc: vpc,
+          databaseName: props.database.dbName,
+          databaseAdminUser: props.database.dbAdminUser,
+          secret: baseDbSecret,
+          instanceType: props.database.instanceType ?? InstanceType.of(
+            InstanceClass.BURSTABLE4_GRAVITON,
+            InstanceSize.SMALL
+          ),
+          destroyOnRemove: props.isDevelopment,
+          makePubliclyReachable: props.isDevelopment,
+          enableMonitoring: props.database.enableMonitoring,
+        });
+      } else {
+        baseDb = new ServerlessBaseDatabase(this, "RdsServerless", {
+          isDevelopment: props.isDevelopment,
+          vpc: vpc,
+          databaseName: props.database.dbName,
+          databaseAdminUser: props.database.dbAdminUser,
+          secret: baseDbSecret,
+          enableMonitoring: props.database.enableMonitoring,
+        })
+      }
 
       if (props.isDevelopment) {
         baseDb.connections().allowDefaultPortFromAnyIpv4();
