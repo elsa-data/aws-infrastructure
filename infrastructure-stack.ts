@@ -16,13 +16,15 @@ import {
 import { InfrastructureStackProps } from "./infrastructure-stack-props";
 import { StringListParameter, StringParameter } from "aws-cdk-lib/aws-ssm";
 import { HttpNamespace } from "aws-cdk-lib/aws-servicediscovery";
-import { SecurityGroup } from "aws-cdk-lib/aws-ec2";
+import {
+  InstanceClass,
+  InstanceSize,
+  InstanceType,
+  SecurityGroup,
+} from "aws-cdk-lib/aws-ec2";
 import _ from "lodash";
 import { BaseDatabase } from "./rds/base-database";
 import { ServerlessBaseDatabase } from "./rds/serverless-base-database";
-import { BaseDatabase } from "./rds/base-database";
-import { ServerlessBaseDatabase } from "./rds/serverless-base-database";
-import { InstanceClass, InstanceSize, InstanceType } from "aws-cdk-lib/aws-ec2";
 
 /**
  * A basic infrastructure stack that supports
@@ -272,34 +274,6 @@ export class InfrastructureStack extends Stack {
         );
 
         let baseDb: BaseDatabase;
-        if (props.database.type === "instance") {
-          baseDb = new InstanceBaseDatabase(this, "RdsInstance", {
-            vpc: vpc,
-            databaseName: props.database.dbName,
-            databaseAdminUser: props.database.dbAdminUser,
-            secret: baseDbSecret,
-            instanceType:
-              props.database.instanceType ??
-              InstanceType.of(
-                InstanceClass.BURSTABLE4_GRAVITON,
-                InstanceSize.SMALL
-              ),
-            destroyOnRemove: props.isDevelopment,
-            makePubliclyReachable: props.isDevelopment,
-            enableMonitoring: props.database.enableMonitoring,
-          });
-        } else {
-          baseDb = new ServerlessBaseDatabase(this, "RdsServerless", {
-            isDevelopment: props.isDevelopment,
-            vpc: vpc,
-            databaseName: props.database.dbName,
-            databaseAdminUser: props.database.dbAdminUser,
-            secret: baseDbSecret,
-            enableMonitoring: props.database.enableMonitoring,
-          });
-        }
-
-        let baseDb: BaseDatabase;
 
         switch (dbConfig.type) {
           case "postgres-instance":
@@ -308,9 +282,15 @@ export class InfrastructureStack extends Stack {
               databaseName: dbName,
               databaseAdminUser: dbConfig.adminUser,
               secret: baseDbSecret,
-              instanceType: dbConfig.instanceType,
+              instanceType:
+                dbConfig.instanceType ??
+                InstanceType.of(
+                  InstanceClass.BURSTABLE4_GRAVITON,
+                  InstanceSize.SMALL
+                ),
               destroyOnRemove: props.isDevelopment,
               makePubliclyReachable: props.isDevelopment,
+              enableMonitoring: dbConfig.enableMonitoring,
             });
             break;
           case "postgres-serverless-2":
@@ -320,6 +300,7 @@ export class InfrastructureStack extends Stack {
               databaseName: dbName,
               databaseAdminUser: dbConfig.adminUser,
               secret: baseDbSecret,
+              enableMonitoring: dbConfig.enableMonitoring,
             });
             break;
         }

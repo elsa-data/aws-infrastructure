@@ -36,18 +36,14 @@ new InfrastructureStack(app, "ElsaDataLocalDevTestInfrastructureStack", {
   dns: {
     hostedZoneName: "dev.umccr.org",
   },
-  database: {
-    type: "instance",
-    instanceType: InstanceType.of(
-      InstanceClass.BURSTABLE4_GRAVITON,
-      InstanceSize.SMALL
-    ),
-    dbAdminUser: `elsa_admin`,
-    dbName: `elsa_database`,
-    enableMonitoring: {
-      cloudwatchLogsExports: ["postgresql"],
-      enablePerformanceInsights: true,
-      monitoringInterval: Duration.seconds(60),
+  databases: {
+    elsa_database: {
+      type: "postgres-instance",
+      instanceType: InstanceType.of(
+        InstanceClass.BURSTABLE4_GRAVITON,
+        InstanceSize.SMALL
+      ),
+      adminUser: `elsa_admin`,
     },
   },
   secretsPrefix: "ElsaData", // pragma: allowlist secret
@@ -70,15 +66,10 @@ new InfrastructureStack(
       vpcNameOrDefaultOrNull: null,
     },
     namespace: {
-      name: ns,
+      name: "elsa-data",
     },
     dns: {
       hostedZoneName: "agha.umccr.org",
-    },
-    database: {
-      instanceType: InstanceType.of(InstanceClass.T3, InstanceSize.MEDIUM),
-      dbAdminUser: `elsa_admin`,
-      dbName: `elsa_database`,
     },
     databases: {
       "pg-elsa-data": {
@@ -87,13 +78,23 @@ new InfrastructureStack(
           InstanceClass.BURSTABLE4_GRAVITON,
           InstanceSize.MEDIUM
         ),
-        adminUser: "admin",
+        adminUser: "elsa_admin",
+        enableMonitoring: {
+          cloudwatchLogsExports: ["postgresql"],
+          enablePerformanceInsights: true,
+          monitoringInterval: Duration.seconds(60),
+        },
       },
       "pg-serverless-elsa-data": {
         type: "postgres-serverless-2",
         minCapacity: 0.5,
         maxCapacity: AuroraCapacityUnit.ACU_2,
-        adminUser: "admin",
+        adminUser: "elsa_admin",
+        enableMonitoring: {
+          cloudwatchLogsExports: ["postgresql"],
+          enablePerformanceInsights: true,
+          monitoringInterval: Duration.seconds(60),
+        },
       },
     },
     secretsPrefix: "ElsaDataDemo", // pragma: allowlist secret
@@ -123,14 +124,17 @@ new InfrastructureStack(
     dns: {
       hostedZoneName: "dev.umccr.org",
     },
-    database: {
-      type: "serverless",
-      dbAdminUser: `elsa_admin`,
-      dbName: `elsa_database`,
-      enableMonitoring: {
-        cloudwatchLogsExports: ["postgresql"],
-        enablePerformanceInsights: true,
-        monitoringInterval: Duration.seconds(60),
+    databases: {
+      elsa_database: {
+        type: "postgres-serverless-2",
+        adminUser: `elsa_admin`,
+        minCapacity: 0.5,
+        maxCapacity: 4,
+        enableMonitoring: {
+          cloudwatchLogsExports: ["postgresql"],
+          enablePerformanceInsights: true,
+          monitoringInterval: Duration.seconds(60),
+        },
       },
     },
     secretsPrefix: "ElsaDataServerless", // pragma: allowlist secret
@@ -151,21 +155,23 @@ new InfrastructureStack(app, "ElsaDataAustralianGenomicsInfrastructureStack", {
     vpcNameOrDefaultOrNull: null,
   },
   namespace: {
-    name: ns + "-prod",
-    name: "elsa-data",
+    name: "elsa-data-prod",
   },
   dns: {
     hostedZoneName: "agha.umccr.org",
   },
-  secretsPrefix: "ElsaDataProd", // pragma: allowlist secret
-  database: {
-    type: "instance",
-    instanceType: InstanceType.of(
-      InstanceClass.BURSTABLE4_GRAVITON,
-      InstanceSize.SMALL
-    ),
-    dbAdminUser: `elsa_admin`,
-    dbName: `elsa_database`,
+  databases: {
+    elsa_database: {
+      type: "postgres-serverless-2",
+      adminUser: `elsa_admin`,
+      minCapacity: 0.5,
+      maxCapacity: 4,
+      enableMonitoring: {
+        cloudwatchLogsExports: ["postgresql"],
+        enablePerformanceInsights: true,
+        monitoringInterval: Duration.seconds(60),
+      },
+    },
   },
   secretsPrefix: "ElsaData", // pragma: allowlist secret
 });
