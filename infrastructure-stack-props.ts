@@ -16,6 +16,9 @@ export type PostgresCommon = {
   // if set will override the allocated storage for the db - otherwise
   // we will have this set to smallest database size allowed (20 Gib)
   overrideAllocatedStorage?: number;
+
+  // if present - instruct us to sit and edgedb in front of this db
+  edgeDb?: {};
 };
 
 export type PostgresInstance = PostgresCommon & {

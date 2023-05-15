@@ -297,40 +297,84 @@ export class InfrastructureStack extends Stack {
         //});
 
         // we want
-        new StringParameter(this, "DatabaseDsnWithPasswordParameter", {
-          parameterName: `/${id}/Database/${dbName}/dsnWithPassword`,
-          stringValue: baseDb.dsnWithTokens,
-        });
+        new StringParameter(
+          this,
+          `${cdkIdSafeDbName}DatabaseDsnWithPasswordParameter`,
+          {
+            parameterName: `/${id}/Database/${dbName}/dsnWithPassword`,
+            stringValue: baseDb.dsnWithTokens,
+          }
+        );
 
-        new StringParameter(this, "DatabaseDsnNoPasswordParameter", {
-          parameterName: `/${id}/Database/${dbName}/dsnNoPassword`,
-          stringValue: baseDb.dsnNoPassword,
-        });
+        new StringParameter(
+          this,
+          `${cdkIdSafeDbName}DatabaseDsnNoPasswordParameter`,
+          {
+            parameterName: `/${id}/Database/${dbName}/dsnNoPassword`,
+            stringValue: baseDb.dsnNoPassword,
+          }
+        );
 
-        new StringParameter(this, "DatabaseHostnameParameter", {
-          parameterName: `/${id}/Database/${dbName}/hostname`,
-          stringValue: baseDb.hostname,
-        });
+        new StringParameter(
+          this,
+          `${cdkIdSafeDbName}DatabaseHostnameParameter`,
+          {
+            parameterName: `/${id}/Database/${dbName}/hostname`,
+            stringValue: baseDb.hostname,
+          }
+        );
 
-        new StringParameter(this, "DatabasePortParameter", {
+        new StringParameter(this, `${cdkIdSafeDbName}DatabasePortParameter`, {
           parameterName: `/${id}/Database/${dbName}/port`,
           stringValue: baseDb.port.toString(),
         });
 
-        new StringParameter(this, "DatabaseAdminUserParameter", {
-          parameterName: `/${id}/Database/${dbName}/adminUser`,
-          stringValue: dbConfig.adminUser,
-        });
+        new StringParameter(
+          this,
+          `${cdkIdSafeDbName}DatabaseAdminUserParameter`,
+          {
+            parameterName: `/${id}/Database/${dbName}/adminUser`,
+            stringValue: dbConfig.adminUser,
+          }
+        );
 
-        new StringParameter(this, "DatabaseDbAdminSecretArnParameter", {
-          parameterName: `/${id}/Database/${dbName}/adminPasswordSecretArn`,
-          stringValue: baseDbSecret.secretArn,
-        });
+        new StringParameter(
+          this,
+          `${cdkIdSafeDbName}DatabaseDbAdminSecretArnParameter`,
+          {
+            parameterName: `/${id}/Database/${dbName}/adminPasswordSecretArn`,
+            stringValue: baseDbSecret.secretArn,
+          }
+        );
 
-        new StringParameter(this, "DatabaseSecurityGroupParameter", {
-          parameterName: `/${id}/Database/${dbName}/securityGroupId`,
-          stringValue: baseDb.securityGroup.securityGroupId,
-        });
+        new StringParameter(
+          this,
+          `${cdkIdSafeDbName}DatabaseSecurityGroupParameter`,
+          {
+            parameterName: `/${id}/Database/${dbName}/securityGroupId`,
+            stringValue: baseDb.securityGroup.securityGroupId,
+          }
+        );
+
+        if (dbConfig.edgeDb) {
+          new StringParameter(
+            this,
+            `${cdkIdSafeDbName}DatabaseEdgeDbSecurityGroupParameter`,
+            {
+              parameterName: `/${id}/Database/${dbName}/EdgeDb/securityGroupId`,
+              stringValue: baseDb.securityGroup.securityGroupId,
+            }
+          );
+
+          new StringParameter(
+            this,
+            `${cdkIdSafeDbName}DatabaseEdgeDbSecurityGroupParameter`,
+            {
+              parameterName: `/${id}/Database/${dbName}/EdgeDb/dsnNoPassword`,
+              stringValue: baseDb.securityGroup.securityGroupId,
+            }
+          );
+        }
       }
     }
   }
