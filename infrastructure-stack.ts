@@ -20,6 +20,9 @@ import { SecurityGroup } from "aws-cdk-lib/aws-ec2";
 import _ from "lodash";
 import { BaseDatabase } from "./rds/base-database";
 import { ServerlessBaseDatabase } from "./rds/serverless-base-database";
+import { BaseDatabase } from "./rds/base-database";
+import { ServerlessBaseDatabase } from "./rds/serverless-base-database";
+import { InstanceClass, InstanceSize, InstanceType } from "aws-cdk-lib/aws-ec2";
 
 /**
  * A basic infrastructure stack that supports
@@ -31,7 +34,10 @@ import { ServerlessBaseDatabase } from "./rds/serverless-base-database";
  */
 export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props: InfrastructureStackProps) {
-    super(scope, id, props);
+    super(scope, id, {
+      ...props,
+      ...(props.forceDeployment && { description: `${new Date()}` }),
+    });
 
     this.templateOptions.description = props.description;
 
@@ -264,6 +270,34 @@ export class InfrastructureStack extends Stack {
             },
           }
         );
+
+        let baseDb: BaseDatabase;
+        if (props.database.type === "instance") {
+          baseDb = new InstanceBaseDatabase(this, "RdsInstance", {
+            vpc: vpc,
+            databaseName: props.database.dbName,
+            databaseAdminUser: props.database.dbAdminUser,
+            secret: baseDbSecret,
+            instanceType:
+              props.database.instanceType ??
+              InstanceType.of(
+                InstanceClass.BURSTABLE4_GRAVITON,
+                InstanceSize.SMALL
+              ),
+            destroyOnRemove: props.isDevelopment,
+            makePubliclyReachable: props.isDevelopment,
+            enableMonitoring: props.database.enableMonitoring,
+          });
+        } else {
+          baseDb = new ServerlessBaseDatabase(this, "RdsServerless", {
+            isDevelopment: props.isDevelopment,
+            vpc: vpc,
+            databaseName: props.database.dbName,
+            databaseAdminUser: props.database.dbAdminUser,
+            secret: baseDbSecret,
+            enableMonitoring: props.database.enableMonitoring,
+          });
+        }
 
         let baseDb: BaseDatabase;
 
