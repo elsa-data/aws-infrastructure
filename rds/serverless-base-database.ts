@@ -164,8 +164,4 @@ export class ServerlessBaseDatabase extends BaseDatabase {
   public get securityGroup(): ISecurityGroup {
     return this._securityGroup;
   }
-
-  public connections(): ec2.Connections {
-    return this._cluster.connections;
-  }
 }

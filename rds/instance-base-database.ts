@@ -151,8 +151,4 @@ export class InstanceBaseDatabase extends BaseDatabase {
   public get securityGroup(): ISecurityGroup {
     return this._securityGroup;
   }
-
-  public connections() {
-    return this._instance.connections;
-  }
 }

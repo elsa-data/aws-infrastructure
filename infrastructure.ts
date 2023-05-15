@@ -1,9 +1,8 @@
 import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
-import { InfrastructureStack } from "./infrastructure-stack";
-import { InstanceClass, InstanceSize, InstanceType } from "aws-cdk-lib/aws-ec2";
-import { AuroraCapacityUnit } from "aws-cdk-lib/aws-rds";
 import { Duration } from "aws-cdk-lib";
+import { InfrastructureStack } from "./infrastructure-stack";
+import { AuroraCapacityUnit } from "aws-cdk-lib/aws-rds";
 
 const app = new cdk.App();
 
@@ -37,13 +36,21 @@ new InfrastructureStack(app, "ElsaDataLocalDevTestInfrastructureStack", {
     hostedZoneName: "dev.umccr.org",
   },
   databases: {
-    elsa_database: {
-      type: "postgres-instance",
-      instanceType: InstanceType.of(
-        InstanceClass.BURSTABLE4_GRAVITON,
-        InstanceSize.SMALL
-      ),
-      adminUser: `elsa_admin`,
+    elsa_serverless_database: {
+      type: "postgres-serverless-2",
+      adminUser: "elsa_admin",
+      minCapacity: 0.5,
+      maxCapacity: 4,
+      enableMonitoring: {
+        cloudwatchLogsExports: ["postgresql"],
+        enablePerformanceInsights: true,
+        monitoringInterval: Duration.seconds(60),
+      },
+      edgeDb: {
+        version: "3.0-beta.1",
+        memoryLimitMiB: 2048,
+        cpu: 1024,
+      },
     },
   },
   secretsPrefix: "ElsaData", // pragma: allowlist secret
@@ -72,23 +79,10 @@ new InfrastructureStack(
       hostedZoneName: "agha.umccr.org",
     },
     databases: {
-      "pg-elsa-data": {
-        type: "postgres-instance",
-        instanceType: InstanceType.of(
-          InstanceClass.BURSTABLE4_GRAVITON,
-          InstanceSize.MEDIUM
-        ),
-        adminUser: "elsa_admin",
-        enableMonitoring: {
-          cloudwatchLogsExports: ["postgresql"],
-          enablePerformanceInsights: true,
-          monitoringInterval: Duration.seconds(60),
-        },
-      },
       "pg-serverless-elsa-data": {
         type: "postgres-serverless-2",
         minCapacity: 0.5,
-        maxCapacity: AuroraCapacityUnit.ACU_2,
+        maxCapacity: AuroraCapacityUnit.ACU_4,
         adminUser: "elsa_admin",
         enableMonitoring: {
           cloudwatchLogsExports: ["postgresql"],
@@ -98,46 +92,6 @@ new InfrastructureStack(
       },
     },
     secretsPrefix: "ElsaDataDemo", // pragma: allowlist secret
-  }
-);
-
-new InfrastructureStack(
-  app,
-  "ElsaDataServerlessLocalDevTestInfrastructureStack",
-  {
-    // the pipeline can only be deployed to UMCCR 'dev'
-    env: {
-      account: "843407916570",
-      region: "ap-southeast-2",
-    },
-    tags: tags,
-    isDevelopment: true,
-    forceDeployment: true,
-    description: description,
-    network: {
-      // use the dev VPC that already exists
-      vpcNameOrDefaultOrNull: "main-vpc",
-    },
-    namespace: {
-      name: "elsa-data-serverless",
-    },
-    dns: {
-      hostedZoneName: "dev.umccr.org",
-    },
-    databases: {
-      elsa_database: {
-        type: "postgres-serverless-2",
-        adminUser: `elsa_admin`,
-        minCapacity: 0.5,
-        maxCapacity: 4,
-        enableMonitoring: {
-          cloudwatchLogsExports: ["postgresql"],
-          enablePerformanceInsights: true,
-          monitoringInterval: Duration.seconds(60),
-        },
-      },
-    },
-    secretsPrefix: "ElsaDataServerless", // pragma: allowlist secret
   }
 );
 

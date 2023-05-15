@@ -8,7 +8,7 @@ import { Construct } from "constructs";
 import { InstanceBaseDatabase } from "./rds/instance-base-database";
 import { smartVpcConstruct } from "./network/vpc";
 import { Bucket, BucketEncryption, ObjectOwnership } from "aws-cdk-lib/aws-s3";
-import { HostedZone } from "aws-cdk-lib/aws-route53";
+import { HostedZone, IHostedZone } from "aws-cdk-lib/aws-route53";
 import {
   Certificate,
   CertificateValidation,
@@ -25,6 +25,7 @@ import {
 import _ from "lodash";
 import { BaseDatabase } from "./rds/base-database";
 import { ServerlessBaseDatabase } from "./rds/serverless-base-database";
+import { EdgeDbConstruct } from "./edge-db/edge-db-construct";
 
 /**
  * A basic infrastructure stack that supports
@@ -32,7 +33,8 @@ import { ServerlessBaseDatabase } from "./rds/serverless-base-database";
  * - a namespace
  * - a DNS zone and certificate
  * - a private bucket for temporary objects (with auto expiry)
- * - a postgres database
+ * - postgres databases
+ * - edgedb databases
  */
 export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props: InfrastructureStackProps) {
@@ -216,12 +218,15 @@ export class InfrastructureStack extends Stack {
       });
     }
 
+    let hz: IHostedZone | undefined = undefined;
+    let cert: Certificate | undefined = undefined;
+
     if (props.dns) {
-      const hz = HostedZone.fromLookup(this, "HostedZone", {
+      hz = HostedZone.fromLookup(this, "HostedZone", {
         domainName: props.dns.hostedZoneName,
       });
 
-      const cert = new Certificate(this, "WildcardCertificate", {
+      cert = new Certificate(this, "WildcardCertificate", {
         domainName: `*.${props.dns.hostedZoneName}`,
         subjectAlternativeNames: [props.dns.hostedZoneName],
         validation: CertificateValidation.fromDns(hz),
@@ -372,21 +377,66 @@ export class InfrastructureStack extends Stack {
         );
 
         if (dbConfig.edgeDb) {
-          new StringParameter(
-            this,
-            `${cdkIdSafeDbName}DatabaseEdgeDbSecurityGroupParameter`,
-            {
-              parameterName: `/${id}/Database/${dbName}/EdgeDb/securityGroupId`,
-              stringValue: baseDb.securityGroup.securityGroupId,
-            }
-          );
+          // there are some conditions we need to abort on
+          if (props.isDevelopment)
+            if (!cert || !hz)
+              throw new Error(
+                "If the UI is going to be switched on for EdgeDb then a certificate and hosted zone also needs to be specified"
+              );
+
+          /**
+           * Create EdgeDb server
+           */
+          const edgeDb = new EdgeDbConstruct(this, `${cdkIdSafeDbName}EdgeDb`, {
+            isDevelopment: props.isDevelopment,
+            vpc: vpc,
+            edgeDbService: {
+              baseDbDsn: baseDb.dsnWithTokens,
+              baseDbSecurityGroup: baseDb.securityGroup,
+              desiredCount: 1,
+              cpu: dbConfig.edgeDb.cpu,
+              memory: dbConfig.edgeDb.memoryLimitMiB,
+              superUser: "elsa_superuser",
+              edgeDbVersion: dbConfig.edgeDb.version,
+            },
+            edgeDbLoadBalancer: {
+              tcpPassthroughPort: dbConfig.edgeDb.dbPort || 4000,
+              // only attempt to switch on the UI for development
+              tls: props.isDevelopment
+                ? {
+                    port: dbConfig.edgeDb.uiPort ?? 443,
+                    hostedCertificate: cert!,
+                    hostedPrefix: dbConfig.edgeDb.urlPrefix!,
+                    hostedZone: hz!,
+                  }
+                : undefined,
+            },
+          });
 
           new StringParameter(
             this,
             `${cdkIdSafeDbName}DatabaseEdgeDbSecurityGroupParameter`,
             {
-              parameterName: `/${id}/Database/${dbName}/EdgeDb/dsnNoPassword`,
-              stringValue: baseDb.securityGroup.securityGroupId,
+              parameterName: `/${id}/Database/${dbName}/EdgeDb/securityGroupId`,
+              stringValue: edgeDb.securityGroup.securityGroupId,
+            }
+          );
+
+          new StringParameter(
+            this,
+            `${cdkIdSafeDbName}DatabaseEdgeDbDsnNoPasswordOrDatabaseParameter`,
+            {
+              parameterName: `/${id}/Database/${dbName}/EdgeDb/dsnNoPasswordOrDatabase`,
+              stringValue: edgeDb.dsnForEnvironmentVariable,
+            }
+          );
+
+          new StringParameter(
+            this,
+            `${cdkIdSafeDbName}DatabaseEdgeDbSecretArnParameter`,
+            {
+              parameterName: `/${id}/Database/${dbName}/EdgeDb/adminPasswordSecretArn`,
+              stringValue: edgeDb.passwordSecret.secretArn,
             }
           );
         }

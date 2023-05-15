@@ -59,4 +59,34 @@ export type PostgresCommon = {
 /**
  * Settings that instruct us how to connect an EdgeDb in front of the given postgres instance
  */
-export type EdgeDbCommon = {};
+export type EdgeDbCommon = {
+  /**
+   * The version string of EdgeDb that will be used for the spun up EdgeDb image
+   */
+  readonly version: string;
+
+  /**
+   * The memory assigned to the Edge Db service
+   */
+  readonly memoryLimitMiB: number;
+
+  /**
+   * The cpu assigned to the Edge Db service
+   */
+  readonly cpu: number;
+
+  /**
+   * A DNS prefix to expose the EdgeDb instance as
+   */
+  readonly urlPrefix?: string;
+
+  /**
+   * The port number to assign for EdgeDb protocol
+   */
+  readonly dbPort?: number;
+
+  /**
+   * The port number to assign for UI access
+   */
+  readonly uiPort?: number;
+};
