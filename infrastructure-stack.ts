@@ -292,8 +292,8 @@ export class InfrastructureStack extends Stack {
                   InstanceClass.BURSTABLE4_GRAVITON,
                   InstanceSize.SMALL
                 ),
-              destroyOnRemove: props.isDevelopment,
-              makePubliclyReachable: props.isDevelopment,
+              destroyOnRemove: dbConfig.destroyOnRemove,
+              makePubliclyReachable: dbConfig.makePubliclyReachable,
               enableMonitoring: dbConfig.enableMonitoring,
             });
             break;
@@ -303,8 +303,8 @@ export class InfrastructureStack extends Stack {
               databaseName: dbName,
               databaseAdminUser: dbConfig.adminUser,
               secret: baseDbSecret,
-              destroyOnRemove: props.isDevelopment,
-              makePubliclyReachable: props.isDevelopment,
+              destroyOnRemove: dbConfig.destroyOnRemove,
+              makePubliclyReachable: dbConfig.makePubliclyReachable,
               enableMonitoring: dbConfig.enableMonitoring,
             });
             break;
@@ -389,6 +389,8 @@ export class InfrastructureStack extends Stack {
            */
           const edgeDb = new EdgeDbConstruct(this, `${cdkIdSafeDbName}EdgeDb`, {
             vpc: vpc,
+            rdsDatabaseDisplayName: dbName,
+            secretsPrefix: props.secretsPrefix,
             edgeDbService: {
               baseDbDsn: baseDb.dsnWithTokens,
               baseDbSecurityGroup: baseDb.securityGroup,

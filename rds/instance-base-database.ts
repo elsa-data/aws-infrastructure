@@ -43,8 +43,8 @@ export interface InstanceBaseDatabaseProps {
   // we will make this by default aggressively track the latest postgres release
   overridePostgresVersion?: PostgresEngineVersion;
 
-  // if set will override the allocated storage for the db - otherwsie
-  // we will have this set to smallest database size allowed (20 Gib)
+  // if set will override the allocated storage for the db - otherwise
+  // we will have this set to the smallest database size allowed (20 Gib)
   overrideAllocatedStorage?: number;
 
   // Allow monitoring features such as postgres logs exported to cloudwatch and performance insights.
@@ -70,32 +70,15 @@ export class InstanceBaseDatabase extends BaseDatabase {
 
     // we create a security group and export its id - so we can use that as a security boundary
     // for services that "can connect to database"
-    this._securityGroup = new SecurityGroup(scope, "DatabaseSecurityGroup", {
-      vpc: props.vpc,
-      // databases don't use outbound traffic via a security group unless you are getting them to reach
-      // out via a stored procedure or something
-      allowAllOutbound: false,
-      allowAllIpv6Outbound: false,
-      description:
-        "Security group for resources that can communicate to the contained RDS instance",
-    });
+    this._securityGroup = this.createStandardSecurityGroup(props.vpc);
+
     const engine = rds.DatabaseInstanceEngine.postgres({
       version: props.overridePostgresVersion ?? PostgresEngineVersion.VER_14,
     });
 
     this._instance = new DatabaseInstance(scope, "DatabaseInstance", {
       databaseName: props.databaseName,
-      removalPolicy: props.destroyOnRemove
-        ? RemovalPolicy.DESTROY
-        : RemovalPolicy.SNAPSHOT,
       engine: engine,
-      credentials: rds.Credentials.fromSecret(props.secret),
-      deleteAutomatedBackups: props.destroyOnRemove,
-      // base AWS encryption at rest
-      storageEncrypted: true,
-      instanceType: props.instanceType,
-      allocatedStorage: props.overrideAllocatedStorage ?? 20,
-      maxAllocatedStorage: 100,
       vpc: props.vpc,
       securityGroups: [this._securityGroup],
       vpcSubnets: {
@@ -103,22 +86,27 @@ export class InstanceBaseDatabase extends BaseDatabase {
           ? ec2.SubnetType.PUBLIC
           : ec2.SubnetType.PRIVATE_ISOLATED,
       },
+      credentials: rds.Credentials.fromSecret(props.secret),
+      // our props "destroy on remove" tells us we don't really care much about the data (demo instances etc)
+      // so we set a bunch of settings accordingly
+      removalPolicy: props.destroyOnRemove
+        ? RemovalPolicy.DESTROY
+        : RemovalPolicy.SNAPSHOT,
+      backupRetention: props.destroyOnRemove ? Duration.days(0) : undefined,
+      deleteAutomatedBackups: props.destroyOnRemove,
+      // always enable base AWS encryption at rest
+      storageEncrypted: true,
+      instanceType: props.instanceType,
+      allocatedStorage: props.overrideAllocatedStorage ?? 20,
+      maxAllocatedStorage: 100,
       ...(props.enableMonitoring && { ...props.enableMonitoring }),
     });
 
-    if (props.makePubliclyReachable) {
-      // we allow access from all the internet to the default db port
-      this._securityGroup.addIngressRule(
-        ec2.Peer.anyIpv4(),
-        ec2.Port.tcp(this._instance.instanceEndpoint.port)
-      );
-    } else {
-      // the db security group can only be connected to on the default db port and only from things ALSO IN THE SAME SECURITY GROUP
-      this._securityGroup.addIngressRule(
-        this._securityGroup,
-        ec2.Port.tcp(this._instance.instanceEndpoint.port)
-      );
-    }
+    this.applySecurityGroupRules(
+      this._securityGroup,
+      this._instance.instanceEndpoint.port,
+      props.makePubliclyReachable
+    );
 
     this._dsnWithTokens =
       `postgres://` +

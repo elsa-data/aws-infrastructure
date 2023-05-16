@@ -23,6 +23,10 @@ export interface EdgeDbProps {
   // decent names but possibly uninformative of which postgres for instance)
   secretsPrefix?: string;
 
+  // purely for information/descriptive purposes - the friendly short name of
+  // the RDS instance we are wrapping
+  rdsDatabaseDisplayName: string;
+
   // the underlying network infrastructure that has already
   // been set up and that we will be installing into
   vpc: ec2.IVpc;
@@ -51,6 +55,7 @@ export class EdgeDbConstruct extends Construct {
       this,
       "EdgeDbSecret",
       {
+        description: `For database ${props.rdsDatabaseDisplayName} - secret containing EdgeDb super user password`,
         secretName: props.secretsPrefix
           ? `${props.secretsPrefix}EdgeDbSecret`
           : undefined,

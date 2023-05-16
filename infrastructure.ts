@@ -49,12 +49,18 @@ new InfrastructureStack(app, "ElsaDataLocalDevTestInfrastructureStack", {
         enablePerformanceInsights: true,
         monitoringInterval: Duration.seconds(60),
       },
+      makePubliclyReachable: true,
+      destroyOnRemove: true,
       edgeDb: {
         version: "3.0-beta.1",
+        makePubliclyReachable: {
+          urlPrefix: "elsa-data-edge-db",
+          enableUi: {},
+        },
       },
     },
   },
-  secretsPrefix: "ElsaData", // pragma: allowlist secret
+  secretsPrefix: "ElsaDataDev", // pragma: allowlist secret
 });
 
 /**
@@ -93,10 +99,14 @@ new InfrastructureStack(
           enablePerformanceInsights: true,
           monitoringInterval: Duration.seconds(60),
         },
+        // for resetting the demo instance it is useful for the underlying RDS to be accessible
+        makePubliclyReachable: true,
+        destroyOnRemove: true,
         edgeDb: {
           version: "3.0-beta.1",
+          // for resetting/setup of the demo instance it is useful for the EdgeDb to be accessible
           makePubliclyReachable: {
-            urlPrefix: "edge-db-demo",
+            urlPrefix: "elsa-data-demo-edge-db",
             enableUi: {},
           },
         },

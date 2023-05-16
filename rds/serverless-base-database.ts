@@ -57,25 +57,13 @@ export class ServerlessBaseDatabase extends BaseDatabase {
 
     // we create a security group and export its id - so we can use that as a security boundary
     // for services that "can connect to database"
-    this._securityGroup = new SecurityGroup(
-      scope,
-      "ServerlessClusterSecurityGroup",
-      {
-        vpc: props.vpc,
-        // databases don't use outbound traffic via a security group unless you are getting them to reach
-        // out via a stored procedure or something
-        allowAllOutbound: false,
-        allowAllIpv6Outbound: false,
-        description:
-          "Security group for resources that can communicate to the contained RDS instance",
-      }
-    );
+    this._securityGroup = this.createStandardSecurityGroup(props.vpc);
 
     this._cluster = new ServerlessCluster(this, "ServerlessCluster", {
       vpc: props.vpc,
       securityGroups: [this._securityGroup],
       vpcSubnets: {
-        subnetType: props.destroyOnRemove
+        subnetType: props.makePubliclyReachable
           ? ec2.SubnetType.PUBLIC
           : ec2.SubnetType.PRIVATE_ISOLATED,
       },
@@ -85,6 +73,7 @@ export class ServerlessBaseDatabase extends BaseDatabase {
       // the default database to create in the cluster - we insist on it being named otherwise no default db is made
       defaultDatabaseName: props.databaseName,
       credentials: rds.Credentials.fromSecret(props.secret),
+      // destroy on remove tells us we don't really care much about the data (demo instances etc)
       removalPolicy: props.destroyOnRemove
         ? RemovalPolicy.DESTROY
         : RemovalPolicy.SNAPSHOT,
@@ -105,14 +94,7 @@ export class ServerlessBaseDatabase extends BaseDatabase {
 
     let enableMonitoring;
     if (props.enableMonitoring) {
-      const monitoringRole = new Role(this, "DatabaseMonitoringRole", {
-        assumedBy: new ServicePrincipal("monitoring.rds.amazonaws.com"),
-      });
-      monitoringRole.addManagedPolicy(
-        ManagedPolicy.fromAwsManagedPolicyName(
-          "service-role/AmazonRDSEnhancedMonitoringRole"
-        )
-      );
+      const monitoringRole = this.createMonitoringRole();
 
       enableMonitoring = {
         enablePerformanceInsights:
@@ -132,19 +114,11 @@ export class ServerlessBaseDatabase extends BaseDatabase {
       ...(enableMonitoring && { ...enableMonitoring }),
     });
 
-    if (props.makePubliclyReachable) {
-      // we allow access from all the internet to the default db port
-      this._securityGroup.addIngressRule(
-        ec2.Peer.anyIpv4(),
-        ec2.Port.tcp(this._cluster.clusterEndpoint.port)
-      );
-    } else {
-      // the db security group can only be connected to on the default db port and only from things ALSO IN THE SAME SECURITY GROUP
-      this._securityGroup.addIngressRule(
-        this._securityGroup,
-        ec2.Port.tcp(this._cluster.clusterEndpoint.port)
-      );
-    }
+    this.applySecurityGroupRules(
+      this._securityGroup,
+      this._cluster.clusterEndpoint.port,
+      props.makePubliclyReachable
+    );
 
     this._dsnWithTokens =
       `postgres://` +
