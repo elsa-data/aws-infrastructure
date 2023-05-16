@@ -49,7 +49,7 @@ export class InfrastructureStack extends Stack {
       this,
       "VPC",
       props.network.vpcNameOrDefaultOrNull,
-      true
+      false
     );
 
     // https://lzygo1995.medium.com/how-to-share-information-between-stacks-through-ssm-parameter-store-in-cdk-1a64e4e9d83a
@@ -262,11 +262,10 @@ export class InfrastructureStack extends Stack {
           this,
           `${cdkIdSafeDbName}Secret`,
           {
-            description:
-              "Secret containing RDS Postgres details such as admin username and password",
-            // secretName: props.secretsPrefix
-            //  ? `${props.secretsPrefix}RdsSecret`
-            //  : undefined,
+            description: `For database ${dbName} - secret containing RDS details such as admin username and password`,
+            secretName: props.secretsPrefix
+              ? `${props.secretsPrefix}${cdkIdSafeDbName}Rds`
+              : undefined,
             generateSecretString: {
               excludePunctuation: true,
               secretStringTemplate: JSON.stringify({
@@ -300,11 +299,12 @@ export class InfrastructureStack extends Stack {
             break;
           case "postgres-serverless-2":
             baseDb = new ServerlessBaseDatabase(this, cdkIdSafeDbName, {
-              isDevelopment: props.isDevelopment,
               vpc: vpc,
               databaseName: dbName,
               databaseAdminUser: dbConfig.adminUser,
               secret: baseDbSecret,
+              destroyOnRemove: props.isDevelopment,
+              makePubliclyReachable: props.isDevelopment,
               enableMonitoring: dbConfig.enableMonitoring,
             });
             break;
@@ -360,7 +360,7 @@ export class InfrastructureStack extends Stack {
 
         new StringParameter(
           this,
-          `${cdkIdSafeDbName}DatabaseDbAdminSecretArnParameter`,
+          `${cdkIdSafeDbName}DatabaseAdminPasswordSecretArnParameter`,
           {
             parameterName: `/${id}/Database/${dbName}/adminPasswordSecretArn`,
             stringValue: baseDbSecret.secretArn,
@@ -369,7 +369,7 @@ export class InfrastructureStack extends Stack {
 
         new StringParameter(
           this,
-          `${cdkIdSafeDbName}DatabaseSecurityGroupParameter`,
+          `${cdkIdSafeDbName}DatabaseSecurityGroupIdParameter`,
           {
             parameterName: `/${id}/Database/${dbName}/securityGroupId`,
             stringValue: baseDb.securityGroup.securityGroupId,
@@ -378,7 +378,7 @@ export class InfrastructureStack extends Stack {
 
         if (dbConfig.edgeDb) {
           // there are some conditions we need to abort on
-          if (props.isDevelopment)
+          if (dbConfig.edgeDb.makePubliclyReachable)
             if (!cert || !hz)
               throw new Error(
                 "If the UI is going to be switched on for EdgeDb then a certificate and hosted zone also needs to be specified"
@@ -388,25 +388,30 @@ export class InfrastructureStack extends Stack {
            * Create EdgeDb server
            */
           const edgeDb = new EdgeDbConstruct(this, `${cdkIdSafeDbName}EdgeDb`, {
-            isDevelopment: props.isDevelopment,
             vpc: vpc,
             edgeDbService: {
               baseDbDsn: baseDb.dsnWithTokens,
               baseDbSecurityGroup: baseDb.securityGroup,
               desiredCount: 1,
-              cpu: dbConfig.edgeDb.cpu,
-              memory: dbConfig.edgeDb.memoryLimitMiB,
+              cpu: dbConfig.edgeDb.cpu ?? 1024,
+              memory: dbConfig.edgeDb.memoryLimitMiB ?? 2048,
               superUser: "elsa_superuser",
               edgeDbVersion: dbConfig.edgeDb.version,
+              enableUiFeatureFlag:
+                !!dbConfig.edgeDb.makePubliclyReachable?.enableUi,
+              enableAllIp: !!dbConfig.edgeDb.makePubliclyReachable,
             },
             edgeDbLoadBalancer: {
-              tcpPassthroughPort: dbConfig.edgeDb.dbPort || 4000,
-              // only attempt to switch on the UI for development
-              tls: props.isDevelopment
+              internetFacing: !!dbConfig.edgeDb.makePubliclyReachable,
+              tcpPassthroughPort: dbConfig.edgeDb.dbPort || 5656,
+              tls: dbConfig.edgeDb.makePubliclyReachable
                 ? {
-                    port: dbConfig.edgeDb.uiPort ?? 443,
+                    port:
+                      dbConfig.edgeDb.makePubliclyReachable.enableUi?.uiPort ??
+                      443,
+                    hostedPrefix:
+                      dbConfig.edgeDb.makePubliclyReachable.urlPrefix,
                     hostedCertificate: cert!,
-                    hostedPrefix: dbConfig.edgeDb.urlPrefix!,
                     hostedZone: hz!,
                   }
                 : undefined,
@@ -415,7 +420,7 @@ export class InfrastructureStack extends Stack {
 
           new StringParameter(
             this,
-            `${cdkIdSafeDbName}DatabaseEdgeDbSecurityGroupParameter`,
+            `${cdkIdSafeDbName}DatabaseEdgeDbSecurityGroupIdParameter`,
             {
               parameterName: `/${id}/Database/${dbName}/EdgeDb/securityGroupId`,
               stringValue: edgeDb.securityGroup.securityGroupId,
@@ -433,7 +438,7 @@ export class InfrastructureStack extends Stack {
 
           new StringParameter(
             this,
-            `${cdkIdSafeDbName}DatabaseEdgeDbSecretArnParameter`,
+            `${cdkIdSafeDbName}DatabaseEdgeDbAdminPasswordSecretArnParameter`,
             {
               parameterName: `/${id}/Database/${dbName}/EdgeDb/adminPasswordSecretArn`,
               stringValue: edgeDb.passwordSecret.secretArn,

@@ -41,7 +41,6 @@ export function smartVpcConstruct(
           subnetType: SubnetType.PRIVATE_ISOLATED,
         },
       });
-      // ecrEndpoint.connections.allowDefaultPortInternally();
     };
 
     if (enableEcrEndpoints) {

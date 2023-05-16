@@ -12,8 +12,6 @@ import { BaseDatabase } from "./base-database";
 import { ManagedPolicy, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 
 interface ServerlessBaseDatabaseProps {
-  isDevelopment?: boolean;
-
   databaseName: string;
 
   vpc: IVpc;
@@ -25,6 +23,12 @@ interface ServerlessBaseDatabaseProps {
   databaseAdminUser: string;
 
   secret: ISecret;
+
+  // if present and true, will set the database such that it will autodelete/autoremove when the stack is destroyed
+  destroyOnRemove?: boolean;
+
+  // if present and true, will place the database such that it can be reached from public IP addresses
+  makePubliclyReachable?: boolean;
 
   // Allow monitoring features such as postgres logs exported to cloudwatch and performance insights.
   enableMonitoring?: {
@@ -71,7 +75,7 @@ export class ServerlessBaseDatabase extends BaseDatabase {
       vpc: props.vpc,
       securityGroups: [this._securityGroup],
       vpcSubnets: {
-        subnetType: props.isDevelopment
+        subnetType: props.destroyOnRemove
           ? ec2.SubnetType.PUBLIC
           : ec2.SubnetType.PRIVATE_ISOLATED,
       },
@@ -81,7 +85,7 @@ export class ServerlessBaseDatabase extends BaseDatabase {
       // the default database to create in the cluster - we insist on it being named otherwise no default db is made
       defaultDatabaseName: props.databaseName,
       credentials: rds.Credentials.fromSecret(props.secret),
-      removalPolicy: props.isDevelopment
+      removalPolicy: props.destroyOnRemove
         ? RemovalPolicy.DESTROY
         : RemovalPolicy.SNAPSHOT,
     });
@@ -124,9 +128,23 @@ export class ServerlessBaseDatabase extends BaseDatabase {
       dbInstanceClass: "db.serverless",
       dbClusterIdentifier: this._cluster.clusterIdentifier,
       engine: "aurora-postgresql",
-      publiclyAccessible: !!props.isDevelopment,
+      publiclyAccessible: props.makePubliclyReachable,
       ...(enableMonitoring && { ...enableMonitoring }),
     });
+
+    if (props.makePubliclyReachable) {
+      // we allow access from all the internet to the default db port
+      this._securityGroup.addIngressRule(
+        ec2.Peer.anyIpv4(),
+        ec2.Port.tcp(this._cluster.clusterEndpoint.port)
+      );
+    } else {
+      // the db security group can only be connected to on the default db port and only from things ALSO IN THE SAME SECURITY GROUP
+      this._securityGroup.addIngressRule(
+        this._securityGroup,
+        ec2.Port.tcp(this._cluster.clusterEndpoint.port)
+      );
+    }
 
     this._dsnWithTokens =
       `postgres://` +

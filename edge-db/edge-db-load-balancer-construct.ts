@@ -13,12 +13,17 @@ import { SubnetType } from "aws-cdk-lib/aws-ec2";
 import { LoadBalancerTarget } from "aws-cdk-lib/aws-route53-targets";
 
 export type EdgeDbLoadBalancerPassthroughProps = {
+  // whether the load balancer for this EdgeDb should face the internet and be public
+  // note that the load balancer can be made public internet *without* also specifying
+  // a TLS name - in which case it will just be using an internal AWS name
+  internetFacing: boolean;
+
   // the port that the load balancer will listen on for TCP passthrough work - this is the normal
   // way for interacting with EdgeDb (i.e. edgedb:// protocol)
   tcpPassthroughPort: number;
 
   // optionally specify to listen with TLS termination
-  // this will forward through to the UI (https://<tls.prefix>.<tls.zone>:<port>/ui -> https://<fargate>/ui)
+  // e.g this can then forward through to the UI (https://<tls.prefix>.<tls.zone>:<port>/ui -> https://<fargate>/ui)
   tls?: {
     port: number;
     hostedPrefix: string;
@@ -31,11 +36,6 @@ export type EdgeDbLoadBalancerPassthroughProps = {
 };
 
 type EdgeDbLoadBalancerProps = EdgeDbLoadBalancerPassthroughProps & {
-  // whether the load balancer for this EdgeDb should face the internet and be public
-  // note that the load balancer can be made public internet *without* also specifying
-  // a TLS name - in which case it will just be using an internal AWS name
-  internetFacing: boolean;
-
   // the VPC that the load balancer back side will live in
   vpc: ec2.IVpc;
 

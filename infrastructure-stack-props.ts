@@ -1,8 +1,4 @@
-import { InstanceType, IVpc } from "aws-cdk-lib/aws-ec2";
-import { PostgresEngineVersion } from "aws-cdk-lib/aws-rds";
-import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
-
-import { Duration, StackProps } from "aws-cdk-lib";
+import { StackProps } from "aws-cdk-lib";
 import {
   PostgresInstance,
   PostgresServerlessV2,
@@ -36,19 +32,15 @@ export interface InfrastructureStackProps extends StackProps {
   description: string;
 
   network: {
-    /**
-     * Controls the VPC that will be used, defaulted to, or constructed.
-     * See vpc.ts.
-     */
+    // Controls the VPC that will be used, defaulted to, or constructed.
+    // See vpc.ts.
     vpcNameOrDefaultOrNull: string | "default" | null;
   };
 
   // the configuration of the private API only namespace associated with
   // *all* apps/services in this infrastructure
   namespace?: {
-    /**
-     * Controls the CloudMap namespace that will be created
-     */
+    // Controls the CloudMap namespace that will be created
     name: string;
   };
 
@@ -60,14 +52,7 @@ export interface InfrastructureStackProps extends StackProps {
     hostedZoneName: string;
   };
 
-  // the configuration of the postgres instance which will be created
-  database?: {
-    type: "serverless" | "instance";
-    instanceType?: InstanceType;
-    dbAdminUser: string;
-    dbName: string;
-  };
-
+  // the configuration of any databases we want to spin up
   databases?: {
     [name: string]: PostgresInstance | PostgresServerlessV2;
   };

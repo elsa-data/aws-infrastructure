@@ -15,6 +15,9 @@ const tags = {
 const description =
   "Infrastructure for Elsa Data - an application for controlled genomic data sharing";
 
+/**
+ * Development friendly for dev accounts
+ */
 new InfrastructureStack(app, "ElsaDataLocalDevTestInfrastructureStack", {
   // deploy this infrastructure to dev
   env: {
@@ -40,7 +43,7 @@ new InfrastructureStack(app, "ElsaDataLocalDevTestInfrastructureStack", {
       type: "postgres-serverless-2",
       adminUser: "elsa_admin",
       minCapacity: 0.5,
-      maxCapacity: 4,
+      maxCapacity: AuroraCapacityUnit.ACU_4,
       enableMonitoring: {
         cloudwatchLogsExports: ["postgresql"],
         enablePerformanceInsights: true,
@@ -48,14 +51,15 @@ new InfrastructureStack(app, "ElsaDataLocalDevTestInfrastructureStack", {
       },
       edgeDb: {
         version: "3.0-beta.1",
-        memoryLimitMiB: 2048,
-        cpu: 1024,
       },
     },
   },
   secretsPrefix: "ElsaData", // pragma: allowlist secret
 });
 
+/**
+ * For demonstration of Elsa for Australian Genomics
+ */
 new InfrastructureStack(
   app,
   "ElsaDataDemoAustralianGenomicsInfrastructureStack",
@@ -73,21 +77,28 @@ new InfrastructureStack(
       vpcNameOrDefaultOrNull: null,
     },
     namespace: {
-      name: "elsa-data",
+      name: "elsa-data-demo",
     },
     dns: {
       hostedZoneName: "agha.umccr.org",
     },
     databases: {
-      "pg-serverless-elsa-data": {
+      elsa_data_serverless_database: {
         type: "postgres-serverless-2",
         minCapacity: 0.5,
         maxCapacity: AuroraCapacityUnit.ACU_4,
-        adminUser: "elsa_admin",
+        adminUser: "elsa_data_serverless_admin",
         enableMonitoring: {
           cloudwatchLogsExports: ["postgresql"],
           enablePerformanceInsights: true,
           monitoringInterval: Duration.seconds(60),
+        },
+        edgeDb: {
+          version: "3.0-beta.1",
+          makePubliclyReachable: {
+            urlPrefix: "edge-db-demo",
+            enableUi: {},
+          },
         },
       },
     },
@@ -95,8 +106,13 @@ new InfrastructureStack(
   }
 );
 
+/**
+ * For production Elsa for Australian Genomics
+ * - currently no database - as we only spin this up to occasionally
+ *   do a manual copy out
+ */
 new InfrastructureStack(app, "ElsaDataAustralianGenomicsInfrastructureStack", {
-  // the pipeline can only be deployed to 'ag'
+  // deploy this infrastructure to ag
   env: {
     account: "602836945884",
     region: "ap-southeast-2",
@@ -114,18 +130,5 @@ new InfrastructureStack(app, "ElsaDataAustralianGenomicsInfrastructureStack", {
   dns: {
     hostedZoneName: "agha.umccr.org",
   },
-  databases: {
-    elsa_database: {
-      type: "postgres-serverless-2",
-      adminUser: `elsa_admin`,
-      minCapacity: 0.5,
-      maxCapacity: 4,
-      enableMonitoring: {
-        cloudwatchLogsExports: ["postgresql"],
-        enablePerformanceInsights: true,
-        monitoringInterval: Duration.seconds(60),
-      },
-    },
-  },
-  secretsPrefix: "ElsaData", // pragma: allowlist secret
+  secretsPrefix: "ElsaDataProd", // pragma: allowlist secret
 });

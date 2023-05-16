@@ -37,6 +37,14 @@ export type EdgeDbServicePassthroughProps = {
 
   // edge db version string for the docker image used for edge db e.g. "2.3"
   edgeDbVersion: string;
+
+  // if present and true, enable the EdgeDb feature flag to switch on the UI
+  // NOTE there are other settings that need to be true for the UI to actually be on the internet!
+  enableUiFeatureFlag?: boolean;
+
+  // if present and true, set the settings on this service such that it
+  // could be connected to from all IP addresses
+  enableAllIp?: boolean;
 };
 
 /**
@@ -44,12 +52,10 @@ export type EdgeDbServicePassthroughProps = {
  * settings we have created on the way.
  */
 type EdgeDbServiceProps = EdgeDbServicePassthroughProps & {
-  isDevelopment?: boolean;
-
   // the VPC that the service will live in
   vpc: ec2.IVpc;
 
-  // the secret holding the edge db superuser password
+  // the secret holding the EdgeDb superuser password
   superUserSecret: ISecret;
 };
 
@@ -126,7 +132,7 @@ export class EdgeDbServiceConstruct extends Construct {
       ),
     };
 
-    if (props.isDevelopment) env.EDGEDB_SERVER_ADMIN_UI = "enabled";
+    if (props.enableUiFeatureFlag) env.EDGEDB_SERVER_ADMIN_UI = "enabled";
 
     const container = taskDefinition.addContainer(containerName, {
       // https://hub.docker.com/r/edgedb/edgedb/tags
@@ -155,29 +161,33 @@ export class EdgeDbServiceConstruct extends Construct {
 
     this._service = new FargateService(this, "EdgeDbService", {
       // even in dev mode we never want to assign public ips to the fargate service...
-      // we always want to access via network load balancer
+      // we *ALWAYS* want to access via network load balancer
       assignPublicIp: false,
       cluster: cluster,
       desiredCount: props.desiredCount,
       taskDefinition: taskDefinition,
       vpcSubnets: {
         // we need egress in order to fetch images?? if we setup with private link maybe avoid? one to investigate?
+        // again - we are *always* putting the service containers in private - it is our network load balancer
+        // that can live in public/private
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
       },
+      // in our security group to gain external access, but in the base db security group
+      // in order to satisfy its access requirements
       securityGroups: [this._securityGroup, props.baseDbSecurityGroup],
     });
 
     // NOTE this fargate service is only for accessing via a NLB - but NLBs inherit the
     // security group rules of their targets - so effectively this is setting the access
     // rules for the EdgeDb NLB
-    if (props.isDevelopment) {
+    if (props.enableAllIp) {
       // development can be accessed from any IP
       this._securityGroup.addIngressRule(
         ec2.Peer.anyIpv4(),
         ec2.Port.tcp(this.EDGE_DB_PORT)
       );
     } else {
-      // for prod - we restrict to instances in the Edgedb security group
+      // for prod - we restrict to instances in the EdgeDb security group
       this._securityGroup.addIngressRule(
         this._securityGroup,
         ec2.Port.tcp(this.EDGE_DB_PORT)

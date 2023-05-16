@@ -11,8 +11,10 @@ export type PostgresInstance = PostgresCommon & {
 
   instanceType?: InstanceType;
 
-  // if set will override the postgres engine used - otherwise
-  // we will make this by default aggressively track the latest postgres release
+  /**
+   * If set will override the postgres engine used - otherwise
+   * we will make this by default aggressively track the latest postgres release
+   */
   overridePostgresVersion?: PostgresEngineVersion;
 };
 
@@ -57,36 +59,31 @@ export type PostgresCommon = {
 };
 
 /**
- * Settings that instruct us how to connect an EdgeDb in front of the given postgres instance
+ * Settings that instruct us to connect an EdgeDb
+ * in front of the given postgres instance
  */
 export type EdgeDbCommon = {
-  /**
-   * The version string of EdgeDb that will be used for the spun up EdgeDb image
-   */
+  // the version string of EdgeDb that will be used for the spun up EdgeDb image
   readonly version: string;
 
-  /**
-   * The memory assigned to the Edge Db service
-   */
-  readonly memoryLimitMiB: number;
+  // the memory assigned to the Edge Db service - defaults to a sensible value
+  readonly memoryLimitMiB?: number;
 
-  /**
-   * The cpu assigned to the Edge Db service
-   */
-  readonly cpu: number;
+  // the cpu assigned to the Edge Db service - defaults to a sensible value
+  readonly cpu?: number;
 
-  /**
-   * A DNS prefix to expose the EdgeDb instance as
-   */
-  readonly urlPrefix?: string;
-
-  /**
-   * The port number to assign for EdgeDb protocol
-   */
+  // the port number to assign for EdgeDb protocol - defaults to 5656
   readonly dbPort?: number;
 
-  /**
-   * The port number to assign for UI access
-   */
-  readonly uiPort?: number;
+  // if present, will place the EdgeDb such that it can be reached from public IP addresses
+  readonly makePubliclyReachable?: {
+    // the DNS prefix to expose the EdgeDb instance as
+    readonly urlPrefix: string;
+
+    // if present - switch on the HTML user interface for the EdgeDb instance
+    readonly enableUi?: {
+      // the port number to assign for UI access - defaults to 443
+      readonly uiPort?: number;
+    };
+  };
 };
