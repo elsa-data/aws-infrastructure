@@ -113,10 +113,13 @@ export class InfrastructureStack extends Stack {
       const internalSg = new SecurityGroup(this, "InternalSecurityGroup", {
         vpc: vpc,
         description:
-          "Security group for resources in the VPC that only allows incoming connections from other resources in the group",
+          "Security group for resources in the VPC that only allows connections from/to other resources in the group",
+        allowAllOutbound: false,
+        allowAllIpv6Outbound: false,
       });
 
       internalSg.addIngressRule(internalSg, Port.allTraffic());
+      internalSg.addEgressRule(internalSg, Port.allTraffic());
 
       new StringParameter(this, "InternalSecurityGroupIdParameter", {
         parameterName: `/${id}/VPC/internalSecurityGroupId`,
