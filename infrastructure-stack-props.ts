@@ -57,12 +57,9 @@ export interface InfrastructureStackProps extends StackProps {
     [name: string]: PostgresInstance | PostgresServerlessV2;
   };
 
-  // a prefix that is used for constructing any AWS secrets (i.e. postgres password)
-  // If empty - the default AWS naming is used (which are decent names
-  // but possibly uninformative of which postgres for instance). Eg we might end
-  // up with 5 RdsSecretXYZ, RdsSecretAbc.. this allows to make
-  // MyAppRdsSecretXYZ
-  // this also helps out by allowing us to make wildcard secret policies that
-  // encompass all secrets with the prefix
-  secretsPrefix?: string;
+  // a prefix that is used for constructing any AWS secrets associated with
+  // this infrastructure (i.e. postgres password)
+  // any application should set up a wildcard policy to allow getting
+  // this value*
+  secretsPrefix: string;
 }

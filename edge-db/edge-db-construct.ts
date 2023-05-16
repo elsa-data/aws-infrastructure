@@ -18,14 +18,16 @@ import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
 import { ISecurityGroup } from "aws-cdk-lib/aws-ec2";
 
 export interface EdgeDbProps {
-  // a prefix that is used for constructing AWS secrets for postgres and edgedb
-  // if empty - the default AWS naming is used (which are
-  // decent names but possibly uninformative of which postgres for instance)
-  secretsPrefix?: string;
+  // a prefix that is used for constructing AWS secrets for edgedb
+  secretsPrefix: string;
 
   // purely for information/descriptive purposes - the friendly short name of
   // the RDS instance we are wrapping
   rdsDatabaseDisplayName: string;
+
+  // purely for secret naming purposes - the CDK safe id derived from
+  // our RDS database name
+  rdsDatabaseCdkIdSafeDbName: string;
 
   // the underlying network infrastructure that has already
   // been set up and that we will be installing into
@@ -56,9 +58,7 @@ export class EdgeDbConstruct extends Construct {
       "EdgeDbSecret",
       {
         description: `For database ${props.rdsDatabaseDisplayName} - secret containing EdgeDb super user password`,
-        secretName: props.secretsPrefix
-          ? `${props.secretsPrefix}EdgeDbSecret`
-          : undefined,
+        secretName: `${props.secretsPrefix}${props.rdsDatabaseCdkIdSafeDbName}EdgeDb`,
         generateSecretString: {
           excludePunctuation: true,
         },
