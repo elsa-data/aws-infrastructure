@@ -1,5 +1,8 @@
-import {Duration, StackProps} from "aws-cdk-lib";
-import { InstanceType } from "aws-cdk-lib/aws-ec2";
+import { StackProps } from "aws-cdk-lib";
+import {
+  PostgresInstance,
+  PostgresServerlessV2,
+} from "./infrastructure-stack-database-props";
 
 export interface InfrastructureStackProps extends StackProps {
   /**
@@ -14,11 +17,6 @@ export interface InfrastructureStackProps extends StackProps {
    * is as locked down as possible.
    */
   isDevelopment?: boolean;
-
-  /**
-   * Forces a new deployment of all stacks by updating the description. Defaults to false.
-   */
-  forceDeployment?: boolean;
 
   /**
    * The description of the infrastructure as used for the CloudFormation stack.
@@ -36,8 +34,10 @@ export interface InfrastructureStackProps extends StackProps {
     vpcNameOrDefaultOrNull: string | "default" | null;
   };
 
-  // the configuration of the private API only namespace associated with
-  // *all* apps/services in this infrastructure
+  /**
+   * The configuration of the private API only namespace associated with
+   * *all* apps/services in this infrastructure
+   */
   namespace?: {
     /**
      * Controls the CloudMap namespace that will be created
@@ -45,34 +45,31 @@ export interface InfrastructureStackProps extends StackProps {
     name: string;
   };
 
-  // the configuration of any DNS associated with *all* applications that will be
-  // installed to this infrastructure
+  /**
+   * The configuration of any DNS associated with *all* applications that will be
+   * installed to this infrastructure
+   */
   dns?: {
-    // specifies a Route 53 zone under our control that we will create
-    // a wildcard SSL certificate for
+    /**
+     * Specifies a Route 53 zone under our control that we will create
+     * a wildcard SSL certificate for
+     */
     hostedZoneName: string;
   };
 
-  // the configuration of the postgres instance which will be created
-  database?: {
-    type: "serverless" | "instance";
-    instanceType?: InstanceType;
-    dbAdminUser: string;
-    dbName: string;
-    // Allow monitoring features such as postgres logs exported to cloudwatch and performance insights.
-    enableMonitoring?: {
-      cloudwatchLogsExports: string[],
-      enablePerformanceInsights: true,
-      monitoringInterval: Duration,
-    };
+  /**
+   * The configuration of any databases we want to spin up.
+   * Keyed by the database name.
+   */
+  databases?: {
+    [name: string]: PostgresInstance | PostgresServerlessV2;
   };
 
-  // a prefix that is used for constructing any AWS secrets (i.e. postgres password)
-  // If empty - the default AWS naming is used (which are decent names
-  // but possibly uninformative of which postgres for instance). Eg we might end
-  // up with 5 RdsSecretXYZ, RdsSecretAbc.. this allows to make
-  // MyAppRdsSecretXYZ
-  // this also helps out by allowing us to make wildcard secret policies that
-  // encompass all secrets with the prefix
-  secretsPrefix?: string;
+  /**
+   * A prefix that is used for constructing any AWS secrets associated with
+   * this infrastructure (i.e. postgres password).
+   * Any application should set up a wildcard policy to allow getting
+   * this value (with a trailing wildcard "*")
+   */
+  secretsPrefix: string;
 }
