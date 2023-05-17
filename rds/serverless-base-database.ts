@@ -2,41 +2,21 @@ import { ISecurityGroup, IVpc, SecurityGroup } from "aws-cdk-lib/aws-ec2";
 import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
 import { ServerlessCluster } from "aws-cdk-lib/aws-rds";
 import { Construct } from "constructs";
-import {
-  aws_ec2 as ec2,
-  aws_rds as rds,
-  Duration,
-  RemovalPolicy,
-} from "aws-cdk-lib";
+import { aws_ec2 as ec2, aws_rds as rds, RemovalPolicy } from "aws-cdk-lib";
 import { BaseDatabase } from "./base-database";
-import { ManagedPolicy, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import {
+  PostgresCommon,
+  PostgresServerlessV2,
+} from "../infrastructure-stack-database-props";
 
-interface ServerlessBaseDatabaseProps {
-  databaseName: string;
+type ServerlessBaseDatabaseProps = PostgresCommon &
+  PostgresServerlessV2 & {
+    vpc: IVpc;
 
-  vpc: IVpc;
+    databaseName: string;
 
-  // the database admin user - whilst this *is* stored inside the secret
-  // we cannot get it out other than using CDK tokens. Given the outer stack
-  // will know this as a real value *and* it is not actually a secret itself,
-  // we pass it in for use in DSNs.
-  databaseAdminUser: string;
-
-  secret: ISecret;
-
-  // if present and true, will set the database such that it will autodelete/autoremove when the stack is destroyed
-  destroyOnRemove?: boolean;
-
-  // if present and true, will place the database such that it can be reached from public IP addresses
-  makePubliclyReachable?: boolean;
-
-  // Allow monitoring features such as postgres logs exported to cloudwatch and performance insights.
-  enableMonitoring?: {
-    cloudwatchLogsExports: string[];
-    enablePerformanceInsights: true;
-    monitoringInterval: Duration;
+    secret: ISecret;
   };
-}
 
 /**
  * A construct representing the base database we might use with EdgeDb - in this
@@ -68,7 +48,9 @@ export class ServerlessBaseDatabase extends BaseDatabase {
           : ec2.SubnetType.PRIVATE_ISOLATED,
       },
       engine: rds.DatabaseClusterEngine.auroraPostgres({
-        version: rds.AuroraPostgresEngineVersion.VER_14_6,
+        version:
+          props.overridePostgresVersion ??
+          rds.AuroraPostgresEngineVersion.VER_14_7,
       }),
       // the default database to create in the cluster - we insist on it being named otherwise no default db is made
       defaultDatabaseName: props.databaseName,
@@ -86,8 +68,8 @@ export class ServerlessBaseDatabase extends BaseDatabase {
         (node) => node instanceof rds.CfnDBCluster
       ) as rds.CfnDBCluster;
       cfnDBCluster.serverlessV2ScalingConfiguration = {
-        minCapacity: 0.5,
-        maxCapacity: rds.AuroraCapacityUnit.ACU_4,
+        minCapacity: props.minCapacity ?? 0.5,
+        maxCapacity: props.maxCapacity ?? rds.AuroraCapacityUnit.ACU_4,
       };
       cfnDBCluster.engineMode = undefined;
     }
@@ -134,7 +116,7 @@ export class ServerlessBaseDatabase extends BaseDatabase {
 
     this._dsnNoPassword =
       `postgres://` +
-      `${props.databaseAdminUser}@${this._cluster.clusterEndpoint.hostname}:${this._cluster.clusterEndpoint.port}/${props.databaseName}`;
+      `${props.adminUser}@${this._cluster.clusterEndpoint.hostname}:${this._cluster.clusterEndpoint.port}/${props.databaseName}`;
   }
 
   public get dsnWithTokens(): string {

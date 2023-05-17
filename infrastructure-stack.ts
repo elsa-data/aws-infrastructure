@@ -39,10 +39,7 @@ import { EdgeDbConstruct } from "./edge-db/edge-db-construct";
  */
 export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props: InfrastructureStackProps) {
-    super(scope, id, {
-      ...props,
-      ...(props.forceDeployment && { description: `${new Date()}` }),
-    });
+    super(scope, id, props);
 
     this.templateOptions.description = props.description;
 
@@ -317,28 +314,16 @@ export class InfrastructureStack extends Stack {
             baseDb = new InstanceBaseDatabase(this, cdkIdSafeDbName, {
               vpc: vpc,
               databaseName: dbName,
-              databaseAdminUser: dbConfig.adminUser,
               secret: baseDbSecret,
-              instanceType:
-                dbConfig.instanceType ??
-                InstanceType.of(
-                  InstanceClass.BURSTABLE4_GRAVITON,
-                  InstanceSize.SMALL
-                ),
-              destroyOnRemove: dbConfig.destroyOnRemove,
-              makePubliclyReachable: dbConfig.makePubliclyReachable,
-              enableMonitoring: dbConfig.enableMonitoring,
+              ...dbConfig,
             });
             break;
           case "postgres-serverless-2":
             baseDb = new ServerlessBaseDatabase(this, cdkIdSafeDbName, {
               vpc: vpc,
               databaseName: dbName,
-              databaseAdminUser: dbConfig.adminUser,
               secret: baseDbSecret,
-              destroyOnRemove: dbConfig.destroyOnRemove,
-              makePubliclyReachable: dbConfig.makePubliclyReachable,
-              enableMonitoring: dbConfig.enableMonitoring,
+              ...dbConfig,
             });
             break;
         }

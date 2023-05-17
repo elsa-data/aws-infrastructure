@@ -19,11 +19,6 @@ export interface InfrastructureStackProps extends StackProps {
   isDevelopment?: boolean;
 
   /**
-   * Forces a new deployment of all stacks by updating the description. Defaults to false.
-   */
-  forceDeployment?: boolean;
-
-  /**
    * The description of the infrastructure as used for the CloudFormation stack.
    * This gives devops an immediate feedback on the purpose of the stack so
    * should be descriptive of the service/project.
@@ -32,34 +27,49 @@ export interface InfrastructureStackProps extends StackProps {
   description: string;
 
   network: {
-    // Controls the VPC that will be used, defaulted to, or constructed.
-    // See vpc.ts.
+    /**
+     * Controls the VPC that will be used, defaulted to, or constructed.
+     * See vpc.ts.
+     */
     vpcNameOrDefaultOrNull: string | "default" | null;
   };
 
-  // the configuration of the private API only namespace associated with
-  // *all* apps/services in this infrastructure
+  /**
+   * The configuration of the private API only namespace associated with
+   * *all* apps/services in this infrastructure
+   */
   namespace?: {
-    // Controls the CloudMap namespace that will be created
+    /**
+     * Controls the CloudMap namespace that will be created
+     */
     name: string;
   };
 
-  // the configuration of any DNS associated with *all* applications that will be
-  // installed to this infrastructure
+  /**
+   * The configuration of any DNS associated with *all* applications that will be
+   * installed to this infrastructure
+   */
   dns?: {
-    // specifies a Route 53 zone under our control that we will create
-    // a wildcard SSL certificate for
+    /**
+     * Specifies a Route 53 zone under our control that we will create
+     * a wildcard SSL certificate for
+     */
     hostedZoneName: string;
   };
 
-  // the configuration of any databases we want to spin up
+  /**
+   * The configuration of any databases we want to spin up.
+   * Keyed by the database name.
+   */
   databases?: {
     [name: string]: PostgresInstance | PostgresServerlessV2;
   };
 
-  // a prefix that is used for constructing any AWS secrets associated with
-  // this infrastructure (i.e. postgres password)
-  // any application should set up a wildcard policy to allow getting
-  // this value*
+  /**
+   * A prefix that is used for constructing any AWS secrets associated with
+   * this infrastructure (i.e. postgres password).
+   * Any application should set up a wildcard policy to allow getting
+   * this value (with a trailing wildcard "*")
+   */
   secretsPrefix: string;
 }

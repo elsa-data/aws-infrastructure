@@ -1,4 +1,6 @@
 import {
+  InstanceClass,
+  InstanceSize,
   InstanceType,
   ISecurityGroup,
   IVpc,
@@ -16,44 +18,21 @@ import {
 import { DatabaseInstance, PostgresEngineVersion } from "aws-cdk-lib/aws-rds";
 import { Construct } from "constructs";
 import { BaseDatabase } from "./base-database";
+import {
+  PostgresCommon,
+  PostgresInstance,
+  PostgresServerlessV2,
+} from "../infrastructure-stack-database-props";
 
-export interface InstanceBaseDatabaseProps {
-  databaseName: string;
+type InstanceBaseDatabaseProps = PostgresCommon &
+  PostgresInstance & {
+    databaseName: string;
 
-  vpc: IVpc;
+    vpc: IVpc;
 
-  // the secret of the database admin password to use
-  secret: ISecret;
-
-  // the database admin user - whilst this *is* stored inside the secret
-  // we cannot get it out other than using CDK tokens. Given the outer stack
-  // will know this as a real value *and* it is not actually a secret itself,
-  // we pass it in for use in DSNs.
-  databaseAdminUser: string;
-
-  instanceType: InstanceType;
-
-  // if present and true, will set the database such that it will autodelete/autoremove when the stack is destroyed
-  destroyOnRemove?: boolean;
-
-  // if present and true, will place the database such that it can be reached from public IP addresses
-  makePubliclyReachable?: boolean;
-
-  // if set will override the postgres engine used - otherwise
-  // we will make this by default aggressively track the latest postgres release
-  overridePostgresVersion?: PostgresEngineVersion;
-
-  // if set will override the allocated storage for the db - otherwise
-  // we will have this set to the smallest database size allowed (20 Gib)
-  overrideAllocatedStorage?: number;
-
-  // Allow monitoring features such as postgres logs exported to cloudwatch and performance insights.
-  enableMonitoring?: {
-    cloudwatchLogsExports: string[];
-    enablePerformanceInsights: true;
-    monitoringInterval: Duration;
+    // the secret of the database admin password to use
+    secret: ISecret;
   };
-}
 
 /**
  * A construct representing a base database to install - in this
@@ -96,7 +75,9 @@ export class InstanceBaseDatabase extends BaseDatabase {
       deleteAutomatedBackups: props.destroyOnRemove,
       // always enable base AWS encryption at rest
       storageEncrypted: true,
-      instanceType: props.instanceType,
+      instanceType:
+        props.instanceType ??
+        InstanceType.of(InstanceClass.BURSTABLE4_GRAVITON, InstanceSize.SMALL),
       allocatedStorage: props.overrideAllocatedStorage ?? 20,
       maxAllocatedStorage: 100,
       ...(props.enableMonitoring && { ...props.enableMonitoring }),
@@ -117,7 +98,7 @@ export class InstanceBaseDatabase extends BaseDatabase {
 
     this._dsnNoPassword =
       `postgres://` +
-      `${props.databaseAdminUser}@${this._instance.instanceEndpoint.hostname}:${this._instance.instanceEndpoint.port}/${props.databaseName}`;
+      `${props.adminUser}@${this._instance.instanceEndpoint.hostname}:${this._instance.instanceEndpoint.port}/${props.databaseName}`;
   }
 
   public get dsnWithTokens(): string {

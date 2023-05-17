@@ -2,7 +2,6 @@ import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
 import { Duration } from "aws-cdk-lib";
 import { InfrastructureStack } from "./infrastructure-stack";
-import { AuroraCapacityUnit } from "aws-cdk-lib/aws-rds";
 
 const app = new cdk.App();
 
@@ -26,7 +25,6 @@ new InfrastructureStack(app, "ElsaDataLocalDevTestInfrastructureStack", {
   },
   tags: tags,
   isDevelopment: true,
-  forceDeployment: true,
   description: description,
   network: {
     // use the dev VPC that already exists
@@ -42,8 +40,6 @@ new InfrastructureStack(app, "ElsaDataLocalDevTestInfrastructureStack", {
     elsa_serverless_database: {
       type: "postgres-serverless-2",
       adminUser: "elsa_admin",
-      minCapacity: 0.5,
-      maxCapacity: AuroraCapacityUnit.ACU_4,
       enableMonitoring: {
         cloudwatchLogsExports: ["postgresql"],
         enablePerformanceInsights: true,
@@ -91,8 +87,6 @@ new InfrastructureStack(
     databases: {
       elsa_data_serverless_database: {
         type: "postgres-serverless-2",
-        minCapacity: 0.5,
-        maxCapacity: AuroraCapacityUnit.ACU_4,
         adminUser: "elsa_data_serverless_admin",
         enableMonitoring: {
           cloudwatchLogsExports: ["postgresql"],
