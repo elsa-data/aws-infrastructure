@@ -48,7 +48,7 @@ new InfrastructureStack(app, "ElsaDataLocalDevTestInfrastructureStack", {
       makePubliclyReachable: true,
       destroyOnRemove: true,
       edgeDb: {
-        version: "3.0-beta.1",
+        version: "3.0",
         makePubliclyReachable: {
           urlPrefix: "elsa-data-edge-db",
           enableUi: {},
@@ -93,11 +93,10 @@ new InfrastructureStack(
           enablePerformanceInsights: true,
           monitoringInterval: Duration.seconds(60),
         },
-        // for resetting the demo instance it is useful for the underlying RDS to be accessible
         makePubliclyReachable: true,
         destroyOnRemove: true,
         edgeDb: {
-          version: "3.0-beta.1",
+          version: "3.0",
           // for resetting/setup of the demo instance it is useful for the EdgeDb to be accessible
           makePubliclyReachable: {
             urlPrefix: "elsa-data-demo-edge-db",
