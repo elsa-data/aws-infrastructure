@@ -37,7 +37,7 @@ new InfrastructureStack(app, "ElsaDataLocalDevTestInfrastructureStack", {
     hostedZoneName: "dev.umccr.org",
   },
   databases: {
-    elsa_serverless_database: {
+    elsa_data_serverless_database: {
       type: "postgres-serverless-2",
       adminUser: "elsa_admin",
       enableMonitoring: {
@@ -45,7 +45,7 @@ new InfrastructureStack(app, "ElsaDataLocalDevTestInfrastructureStack", {
         enablePerformanceInsights: true,
         monitoringInterval: Duration.seconds(60),
       },
-      makePubliclyReachable: true,
+      makePubliclyReachable: false,
       destroyOnRemove: true,
       edgeDb: {
         version: "3.0",
@@ -93,7 +93,7 @@ new InfrastructureStack(
           enablePerformanceInsights: true,
           monitoringInterval: Duration.seconds(60),
         },
-        makePubliclyReachable: true,
+        makePubliclyReachable: false,
         destroyOnRemove: true,
         edgeDb: {
           version: "3.0",
