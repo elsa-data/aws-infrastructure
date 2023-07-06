@@ -17,7 +17,7 @@ const description =
 /**
  * Development friendly for dev accounts
  */
-new InfrastructureStack(app, "ElsaDataLocalDevTestInfrastructureStack", {
+new InfrastructureStack(app, "ElsaDataDevInfrastructureStack", {
   // deploy this infrastructure to dev
   env: {
     account: "843407916570",
@@ -114,24 +114,28 @@ new InfrastructureStack(
  * - currently no database - as we only spin this up to occasionally
  *   do a manual copy out
  */
-new InfrastructureStack(app, "ElsaDataAustralianGenomicsInfrastructureStack", {
-  // deploy this infrastructure to ag
-  env: {
-    account: "602836945884",
-    region: "ap-southeast-2",
-  },
-  tags: tags,
-  isDevelopment: false,
-  description: description,
-  network: {
-    // we want it to construct a new custom VPC to limit possible breach surface
-    vpcNameOrDefaultOrNull: null,
-  },
-  namespace: {
-    name: "elsa-data-prod",
-  },
-  dns: {
-    hostedZoneName: "agha.umccr.org",
-  },
-  secretsPrefix: "ElsaDataProd", // pragma: allowlist secret
-});
+new InfrastructureStack(
+  app,
+  "ElsaDataProdAustralianGenomicsInfrastructureStack",
+  {
+    // deploy this infrastructure to ag
+    env: {
+      account: "602836945884",
+      region: "ap-southeast-2",
+    },
+    tags: tags,
+    isDevelopment: false,
+    description: description,
+    network: {
+      // we want it to construct a new custom VPC to limit possible breach surface
+      vpcNameOrDefaultOrNull: null,
+    },
+    namespace: {
+      name: "elsa-data-prod",
+    },
+    dns: {
+      hostedZoneName: "agha.umccr.org",
+    },
+    secretsPrefix: "ElsaDataProd", // pragma: allowlist secret
+  }
+);
