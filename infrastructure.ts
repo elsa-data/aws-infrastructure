@@ -17,7 +17,7 @@ const description =
 /**
  * Development friendly for dev accounts
  */
-new InfrastructureStack(app, "ElsaDataLocalDevTestInfrastructureStack", {
+new InfrastructureStack(app, "ElsaDataDevInfrastructureStack", {
   // deploy this infrastructure to dev
   env: {
     account: "843407916570",
@@ -37,7 +37,7 @@ new InfrastructureStack(app, "ElsaDataLocalDevTestInfrastructureStack", {
     hostedZoneName: "dev.umccr.org",
   },
   databases: {
-    elsa_serverless_database: {
+    elsa_data_serverless_database: {
       type: "postgres-serverless-2",
       adminUser: "elsa_admin",
       enableMonitoring: {
@@ -45,10 +45,10 @@ new InfrastructureStack(app, "ElsaDataLocalDevTestInfrastructureStack", {
         enablePerformanceInsights: true,
         monitoringInterval: Duration.seconds(60),
       },
-      makePubliclyReachable: true,
+      makePubliclyReachable: false,
       destroyOnRemove: true,
       edgeDb: {
-        version: "3.0-beta.1",
+        version: "3.0",
         makePubliclyReachable: {
           urlPrefix: "elsa-data-edge-db",
           enableUi: {},
@@ -93,11 +93,10 @@ new InfrastructureStack(
           enablePerformanceInsights: true,
           monitoringInterval: Duration.seconds(60),
         },
-        // for resetting the demo instance it is useful for the underlying RDS to be accessible
-        makePubliclyReachable: true,
+        makePubliclyReachable: false,
         destroyOnRemove: true,
         edgeDb: {
-          version: "3.0-beta.1",
+          version: "3.0",
           // for resetting/setup of the demo instance it is useful for the EdgeDb to be accessible
           makePubliclyReachable: {
             urlPrefix: "elsa-data-demo-edge-db",
@@ -115,24 +114,28 @@ new InfrastructureStack(
  * - currently no database - as we only spin this up to occasionally
  *   do a manual copy out
  */
-new InfrastructureStack(app, "ElsaDataAustralianGenomicsInfrastructureStack", {
-  // deploy this infrastructure to ag
-  env: {
-    account: "602836945884",
-    region: "ap-southeast-2",
-  },
-  tags: tags,
-  isDevelopment: false,
-  description: description,
-  network: {
-    // we want it to construct a new custom VPC to limit possible breach surface
-    vpcNameOrDefaultOrNull: null,
-  },
-  namespace: {
-    name: "elsa-data-prod",
-  },
-  dns: {
-    hostedZoneName: "agha.umccr.org",
-  },
-  secretsPrefix: "ElsaDataProd", // pragma: allowlist secret
-});
+new InfrastructureStack(
+  app,
+  "ElsaDataProdAustralianGenomicsInfrastructureStack",
+  {
+    // deploy this infrastructure to ag
+    env: {
+      account: "602836945884",
+      region: "ap-southeast-2",
+    },
+    tags: tags,
+    isDevelopment: false,
+    description: description,
+    network: {
+      // we want it to construct a new custom VPC to limit possible breach surface
+      vpcNameOrDefaultOrNull: null,
+    },
+    namespace: {
+      name: "elsa-data-prod",
+    },
+    dns: {
+      hostedZoneName: "agha.umccr.org",
+    },
+    secretsPrefix: "ElsaDataProd", // pragma: allowlist secret
+  }
+);
