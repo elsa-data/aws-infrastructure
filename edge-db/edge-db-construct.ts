@@ -11,11 +11,15 @@ import {
   EdgeDbServicePassthroughProps,
 } from "./edge-db-service-construct";
 import {
-  EdgeDbLoadBalancerConstruct,
-  EdgeDbLoadBalancerPassthroughProps,
-} from "./edge-db-load-balancer-construct";
+  EdgeDbLoadBalancerProtocolConstruct,
+  EdgeDbLoadBalancerProtocolPassthroughProps,
+} from "./edge-db-load-balancer-protocol-construct";
 import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
 import { ISecurityGroup } from "aws-cdk-lib/aws-ec2";
+import {
+  EdgeDbLoadBalancerUiConstruct,
+  EdgeDbLoadBalancerUiPassthroughProps,
+} from "./edge-db-load-balancer-ui-construct";
 
 export interface EdgeDbProps {
   // a prefix that is used for constructing AWS secrets for edgedb
@@ -36,8 +40,11 @@ export interface EdgeDbProps {
   // the configuration of the fargate service that is edge db itself
   edgeDbService: EdgeDbServicePassthroughProps;
 
-  // the configuration of the network load balancer sitting in front of edge db
-  edgeDbLoadBalancer: EdgeDbLoadBalancerPassthroughProps;
+  // the configuration of the internal network load balancer that provides EdgeDb protocol access
+  edgeDbLoadBalancerProtocol: EdgeDbLoadBalancerProtocolPassthroughProps;
+
+  // if present, configures a public UI for the EdgeDb instance
+  edgeDbLoadBalancerUi?: EdgeDbLoadBalancerUiPassthroughProps;
 }
 
 /**
@@ -47,7 +54,7 @@ export interface EdgeDbProps {
 export class EdgeDbConstruct extends Construct {
   private readonly _dsn: string;
   private readonly _edgeDbPasswordSecret: ISecret;
-  private readonly _edgeDbSecurityGroup: ISecurityGroup;
+  // private readonly _edgeDbSecurityGroup: ISecurityGroup;
 
   constructor(scope: Construct, id: string, props: EdgeDbProps) {
     super(scope, id);
@@ -71,30 +78,20 @@ export class EdgeDbConstruct extends Construct {
       superUserSecret: this._edgeDbPasswordSecret,
     });
 
-    this._edgeDbSecurityGroup = edgeDbService.securityGroup;
-
-    const edgeDbLoadBalancer = new EdgeDbLoadBalancerConstruct(
+    const edgeDbLoadBalancer = new EdgeDbLoadBalancerProtocolConstruct(
       this,
-      "EdgeDbLoadBalancer",
+      "EdgeDbLoadBalancerProtocol",
       {
-        ...props.edgeDbLoadBalancer,
         vpc: props.vpc,
         service: edgeDbService.service,
         servicePort: edgeDbService.servicePort,
-        serviceHealthCheck: {
-          enabled: true,
-          healthyThresholdCount: 2,
-          unhealthyThresholdCount: 2,
-          protocol: Protocol.HTTPS,
-          path: "/server/status/ready",
-          interval: Duration.seconds(10),
-        },
+        ...props.edgeDbLoadBalancerProtocol,
       }
     );
 
     const edgeDbPortString =
-      props.edgeDbLoadBalancer.tcpPassthroughPort != 5656
-        ? `:${props.edgeDbLoadBalancer.tcpPassthroughPort}`
+      props.edgeDbLoadBalancerProtocol.tcpPassthroughPort != 5656
+        ? `:${props.edgeDbLoadBalancerProtocol.tcpPassthroughPort}`
         : "";
 
     this._dsn = `edgedb://${props.edgeDbService.superUser}@${edgeDbLoadBalancer.dnsName}${edgeDbPortString}`;
@@ -104,13 +101,24 @@ export class EdgeDbConstruct extends Construct {
     });
 
     // only in development mode is the UI switched on and accessible
-    if (props.edgeDbLoadBalancer.tls) {
+    if (props.edgeDbLoadBalancerUi) {
+      const edgeDbLoadBalancerUi = new EdgeDbLoadBalancerUiConstruct(
+        this,
+        "EdgeDbLoadBalancerUi",
+        {
+          vpc: props.vpc,
+          service: edgeDbService.service,
+          servicePort: edgeDbService.servicePort,
+          ...props.edgeDbLoadBalancerUi,
+        }
+      );
+
       const tlsPortString =
-        props.edgeDbLoadBalancer.tls.port != 443
-          ? `:${props.edgeDbLoadBalancer.tls.port}`
+        props.edgeDbLoadBalancerUi.hostedPort != 443
+          ? `:${props.edgeDbLoadBalancerUi.hostedPort}`
           : "";
       new CfnOutput(this, "EdgeDbUiUrl", {
-        value: `https://${edgeDbLoadBalancer.dnsName}${tlsPortString}/ui`,
+        value: `https://${edgeDbLoadBalancerUi.dnsName}${tlsPortString}/ui`,
       });
     }
   }
@@ -121,9 +129,5 @@ export class EdgeDbConstruct extends Construct {
 
   public get passwordSecret(): ISecret {
     return this._edgeDbPasswordSecret;
-  }
-
-  public get securityGroup(): ISecurityGroup {
-    return this._edgeDbSecurityGroup;
   }
 }

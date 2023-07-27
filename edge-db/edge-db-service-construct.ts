@@ -3,6 +3,7 @@ import {
   aws_ecs as ecs,
   aws_iam as iam,
   aws_logs as logs,
+  Duration,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import {
@@ -41,14 +42,10 @@ export type EdgeDbServicePassthroughProps = {
   // if present and true, enable the EdgeDb feature flag to switch on the UI
   // NOTE there are other settings that need to be true for the UI to actually be on the internet!
   enableUiFeatureFlag?: boolean;
-
-  // if present and true, set the settings on this service such that it
-  // could be connected to from all IP addresses
-  enableAllIp?: boolean;
 };
 
 /**
- * An augmenting of the high level passthrough props with other
+ * An augmenting of the high level pass through props with other
  * settings we have created on the way.
  */
 type EdgeDbServiceProps = EdgeDbServicePassthroughProps & {
@@ -61,13 +58,14 @@ type EdgeDbServiceProps = EdgeDbServicePassthroughProps & {
 
 /**
  * The EdgeDb service is a Fargate task cluster running the EdgeDb
- * Docker image and pointing to an external Postgres database.
+ * Docker image and pointing to an existing Postgres database.
  *
- * The service is set up to use self-signed certs in anticipation that
- * a network load balancer will sit in front of it.
+ * The service is set up to use self-signed certs assuming
+ * - network load balancer will sit in front of it and that NLB will deal with TLS termination
+ * - a client will connect and the client will ignore certs
  */
 export class EdgeDbServiceConstruct extends Construct {
-  // the fargate service is predicated on using the default edgedb port
+  // this construct is predicated on using the default EdgeDb port
   // so if you want to change this then you'll have to add some extra PORT settings in various places
   private readonly EDGE_DB_PORT = 5656;
 
@@ -134,7 +132,7 @@ export class EdgeDbServiceConstruct extends Construct {
 
     if (props.enableUiFeatureFlag) env.EDGEDB_SERVER_ADMIN_UI = "enabled";
 
-    const container = taskDefinition.addContainer(containerName, {
+    taskDefinition.addContainer(containerName, {
       // https://hub.docker.com/r/edgedb/edgedb/tags
       image: ecs.ContainerImage.fromRegistry(
         `edgedb/edgedb:${props.edgeDbVersion}`
@@ -145,23 +143,36 @@ export class EdgeDbServiceConstruct extends Construct {
         streamPrefix: "edge-db",
         logGroup: clusterLogGroup,
       }),
+      portMappings: [
+        {
+          containerPort: this.EDGE_DB_PORT,
+          protocol: Protocol.TCP,
+        },
+      ],
     });
 
-    container.addPortMappings({
-      containerPort: this.EDGE_DB_PORT,
-      protocol: Protocol.TCP,
-    });
+    this._securityGroup = new SecurityGroup(
+      this,
+      "InternalAccessSecurityGroup",
+      {
+        vpc: props.vpc,
+        allowAllOutbound: false,
+        allowAllIpv6Outbound: false,
+        description:
+          "Security group allowing the VPC CIDR range to communicate to the EdgeDb service",
+      }
+    );
 
-    // we can't put the EdgeDb service *only* in the db security group because that group has no egress
-    // rules (unlike RDS - EdgeDb needs to speak to the internet to fetch images etc)
-    // so we also need to make our own more permissive group
-    this._securityGroup = new SecurityGroup(this, "EdgeDbSecurityGroup", {
-      vpc: props.vpc,
-    });
+    // as per https://docs.aws.amazon.com/elasticloadbalancing/latest/network/target-group-register-targets.html
+    // because we are fronting this service with an NLB - we can *only* use IP address ranges to control access
+    this._securityGroup.addIngressRule(
+      ec2.Peer.ipv4(props.vpc.vpcCidrBlock),
+      ec2.Port.tcp(this.EDGE_DB_PORT)
+    );
 
-    this._service = new FargateService(this, "EdgeDbService", {
+    this._service = new FargateService(this, "Service", {
       // even in dev mode we never want to assign public ips to the fargate service...
-      // we *ALWAYS* want to access via network load balancer
+      // we *ALWAYS* want to access via network load balancer - and that NLB can either be internal or external
       assignPublicIp: false,
       cluster: cluster,
       desiredCount: props.desiredCount,
@@ -172,27 +183,25 @@ export class EdgeDbServiceConstruct extends Construct {
         // that can live in public/private
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
       },
-      // in our security group to gain external access, but in the base db security group
-      // in order to satisfy its access requirements
-      securityGroups: [this._securityGroup, props.baseDbSecurityGroup],
-    });
-
-    // NOTE this fargate service is only for accessing via a NLB - but NLBs inherit the
-    // security group rules of their targets - so effectively this is setting the access
-    // rules for the EdgeDb NLB
-    if (props.enableAllIp) {
-      // development can be accessed from any IP
-      this._securityGroup.addIngressRule(
-        ec2.Peer.anyIpv4(),
-        ec2.Port.tcp(this.EDGE_DB_PORT)
-      );
-    } else {
-      // for prod - we restrict to instances in the EdgeDb security group
-      this._securityGroup.addIngressRule(
+      // in practice an EdgeDb startup went from
+      // from 10:03:17
+      // to   10:03:26
+      // i.e. 10 seconds - so allocating 30 seconds to be safe
+      healthCheckGracePeriod: Duration.seconds(30),
+      securityGroups: [
+        // a security group that allows the EdgeDb to reach the world
+        new ec2.SecurityGroup(this, "EgressSecurityGroup", {
+          vpc: props.vpc,
+          allowAllOutbound: true,
+          description:
+            "Security group that allows the EdgeDb service to reach out over the network",
+        }),
+        // a security group allowing access from the internal IPs (needed for the NLBs)
         this._securityGroup,
-        ec2.Port.tcp(this.EDGE_DB_PORT)
-      );
-    }
+        // a security group that the service needs that gives it the "ability to connect to RDS"
+        props.baseDbSecurityGroup,
+      ],
+    });
   }
 
   public get service(): FargateService {
@@ -201,9 +210,5 @@ export class EdgeDbServiceConstruct extends Construct {
 
   public get servicePort(): number {
     return this.EDGE_DB_PORT;
-  }
-
-  public get securityGroup(): ISecurityGroup {
-    return this._securityGroup;
   }
 }
