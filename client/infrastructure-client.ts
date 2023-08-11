@@ -1,4 +1,4 @@
-import { aws_route53 as route53, Stack } from "aws-cdk-lib";
+import { aws_route53 as route53 } from "aws-cdk-lib";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
 import { IVpc, SecurityGroup, Vpc } from "aws-cdk-lib/aws-ec2";
 import {
@@ -17,6 +17,7 @@ import {
   vpcPublicSubnetRouteTableIdsParameterName,
 } from "elsa-data-aws-infrastructure-shared";
 import { IHostedZone } from "aws-cdk-lib/aws-route53";
+import { Construct } from "constructs";
 
 export interface DnsResult {
   readonly hostedZone: IHostedZone;
@@ -24,102 +25,98 @@ export interface DnsResult {
 }
 
 export class ElsaDataInfrastructureClient {
-  public createVpcFromLookup(
-    stack: Stack,
-    infrastructureStackId: string
-  ): IVpc {
+  constructor(private infrastructureStackId: string) {}
+
+  /**
+   * Get a CDK VPC object from existing infrastructure.
+   *
+   * @param scope
+   */
+  public getVpcFromLookup(scope: Construct): IVpc {
     const getStringListLookup = (parameterName: string) => {
-      return StringParameter.valueFromLookup(stack, parameterName).split(",");
+      return StringParameter.valueFromLookup(scope, parameterName).split(",");
     };
 
-    return Vpc.fromVpcAttributes(stack, "VPC", {
+    return Vpc.fromVpcAttributes(scope, "VPC", {
       vpcId: StringParameter.valueFromLookup(
-        stack,
-        vpcIdParameterName(infrastructureStackId)
+        scope,
+        vpcIdParameterName(this.infrastructureStackId)
       ),
       availabilityZones: getStringListLookup(
-        vpcAvailabilityZonesParameterName(infrastructureStackId)
+        vpcAvailabilityZonesParameterName(this.infrastructureStackId)
       ),
       publicSubnetIds: getStringListLookup(
-        vpcPublicSubnetIdsParameterName(infrastructureStackId)
+        vpcPublicSubnetIdsParameterName(this.infrastructureStackId)
       ),
       publicSubnetRouteTableIds: getStringListLookup(
-        vpcPublicSubnetRouteTableIdsParameterName(infrastructureStackId)
+        vpcPublicSubnetRouteTableIdsParameterName(this.infrastructureStackId)
       ),
       privateSubnetIds: getStringListLookup(
-        vpcPrivateSubnetIdsParameterName(infrastructureStackId)
+        vpcPrivateSubnetIdsParameterName(this.infrastructureStackId)
       ),
       privateSubnetRouteTableIds: getStringListLookup(
-        vpcPrivateSubnetRouteTableIdsParameterName(infrastructureStackId)
+        vpcPrivateSubnetRouteTableIdsParameterName(this.infrastructureStackId)
       ),
       isolatedSubnetIds: getStringListLookup(
-        vpcIsolatedSubnetIdsParameterName(infrastructureStackId)
+        vpcIsolatedSubnetIdsParameterName(this.infrastructureStackId)
       ),
       isolatedSubnetRouteTableIds: getStringListLookup(
-        vpcIsolatedSubnetRouteTableIdsParameterName(infrastructureStackId)
+        vpcIsolatedSubnetRouteTableIdsParameterName(this.infrastructureStackId)
       ),
     });
   }
 
   /**
-   * Create a useable CloudMap namespace object by reflecting values
+   * Get a CDK CloudMap namespace object by reflecting values
    * out of Parameter Store.
    *
-   * @param stack
-   * @param infrastructureStackId
+   * @param scope
    */
-  public createNamespaceFromLookup(
-    stack: Stack,
-    infrastructureStackId: string
-  ): IHttpNamespace {
-    return HttpNamespace.fromHttpNamespaceAttributes(stack, "Namespace", {
+  public getNamespaceFromLookup(scope: Construct): IHttpNamespace {
+    return HttpNamespace.fromHttpNamespaceAttributes(scope, "Namespace", {
       namespaceArn: StringParameter.valueFromLookup(
-        stack,
-        `/${infrastructureStackId}/HttpNamespace/namespaceArn`
+        scope,
+        `/${this.infrastructureStackId}/HttpNamespace/namespaceArn`
       ),
       namespaceId: StringParameter.valueFromLookup(
-        stack,
-        `/${infrastructureStackId}/HttpNamespace/namespaceId`
+        scope,
+        `/${this.infrastructureStackId}/HttpNamespace/namespaceId`
       ),
       namespaceName: StringParameter.valueFromLookup(
-        stack,
-        `/${infrastructureStackId}/HttpNamespace/namespaceName`
+        scope,
+        `/${this.infrastructureStackId}/HttpNamespace/namespaceName`
       ),
     });
   }
 
   /**
-   * Create some useable DNS CDK objects by reflecting values out of Parameter
+   * Create some usable DNS CDK objects by reflecting values out of Parameter
    * Store.
    *
-   * @param stack
-   * @param infrastructureStackId
+   * @param scope
    */
-  public createDnsFromLookup(
-    stack: Stack,
-    infrastructureStackId: string
-  ): DnsResult {
+  public getDnsFromLookup(scope: Construct): DnsResult {
     const hostedZone = route53.HostedZone.fromHostedZoneAttributes(
-      stack,
+      scope,
       "HostedZone",
       {
         hostedZoneId: StringParameter.valueFromLookup(
-          stack,
-          `/${infrastructureStackId}/HostedZone/hostedZoneId`
+          scope,
+          `/${this.infrastructureStackId}/HostedZone/hostedZoneId`
         ),
         zoneName: StringParameter.valueFromLookup(
-          stack,
-          `/${infrastructureStackId}/HostedZone/zoneName`
+          scope,
+          `/${this.infrastructureStackId}/HostedZone/zoneName`
         ),
       }
     );
 
     const certificate = Certificate.fromCertificateArn(
-      stack,
+      scope,
       "SslCert",
       StringParameter.valueFromLookup(
-        stack,
-        `/${infrastructureStackId}/Certificate/certificateArn`
+        scope,
+        `/${this.infrastructureStackId}/Certificate/certificateArn`
       )
     );
 
@@ -129,17 +126,16 @@ export class ElsaDataInfrastructureClient {
     };
   }
 
-  public createEdgeDbSecurityGroupFromLookup(
-    stack: Stack,
-    infrastructureStackId: string,
+  public getEdgeDbSecurityGroupFromLookup(
+    scope: Construct,
     databaseName: string
   ) {
     return SecurityGroup.fromSecurityGroupId(
-      stack,
+      scope,
       "EdgeDbSecurityGroup",
       StringParameter.valueFromLookup(
-        stack,
-        `/${infrastructureStackId}/Database/${databaseName}/EdgeDb/securityGroupId`
+        scope,
+        `/${this.infrastructureStackId}/Database/${databaseName}/EdgeDb/securityGroupId`
       ),
 
       {

@@ -1,7 +1,6 @@
 import {
   aws_secretsmanager as secretsmanager,
   Duration,
-  Names,
   RemovalPolicy,
   Stack,
 } from "aws-cdk-lib";
@@ -19,14 +18,6 @@ import { StringListParameter, StringParameter } from "aws-cdk-lib/aws-ssm";
 import { HttpNamespace } from "aws-cdk-lib/aws-servicediscovery";
 import { Port, SecurityGroup } from "aws-cdk-lib/aws-ec2";
 import { camelCase } from "lodash";
-import {
-  CfnPrefixList,
-  InstanceClass,
-  InstanceSize,
-  InstanceType,
-  Port,
-  SecurityGroup,
-} from "aws-cdk-lib/aws-ec2";
 import { BaseDatabase } from "./rds/base-database";
 import { ServerlessBaseDatabase } from "./rds/serverless-base-database";
 import { EdgeDbConstruct } from "./edge-db/edge-db-construct";
