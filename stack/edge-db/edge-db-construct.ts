@@ -2,10 +2,8 @@ import {
   aws_ec2 as ec2,
   aws_secretsmanager as secretsmanager,
   CfnOutput,
-  Duration,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { Protocol } from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import {
   EdgeDbServiceConstruct,
   EdgeDbServicePassthroughProps,
@@ -15,7 +13,6 @@ import {
   EdgeDbLoadBalancerProtocolPassthroughProps,
 } from "./edge-db-load-balancer-protocol-construct";
 import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
-import { ISecurityGroup } from "aws-cdk-lib/aws-ec2";
 import {
   EdgeDbLoadBalancerUiConstruct,
   EdgeDbLoadBalancerUiPassthroughProps,

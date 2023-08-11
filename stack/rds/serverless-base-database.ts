@@ -88,7 +88,7 @@ export class ServerlessBaseDatabase extends BaseDatabase {
       };
     }
 
-    const writerInstance = new rds.CfnDBInstance(this, "Writer", {
+    new rds.CfnDBInstance(this, "Writer", {
       dbInstanceClass: "db.serverless",
       dbClusterIdentifier: this._cluster.clusterIdentifier,
       engine: "aurora-postgresql",

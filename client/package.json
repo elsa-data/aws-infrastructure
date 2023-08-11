@@ -1,0 +1,49 @@
+{
+  "name": "@umccr/elsa-data-aws-infrastructure-client",
+  "version": "0.0.0",
+  "description": "A library for clients wanting to use the Elsa Data infrastructure stack",
+  "author": {
+    "name": "University of Melbourne Centre for Cancer Research",
+    "organization": true
+  },
+  "main": "infrastructure-client.js",
+  "types": "infrastructure-client.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/umccr/elsa-data-aws-infrastructure/client"
+  },
+  "license": "MIT",
+  "scripts": {
+    "build-client": "jsii -vvv",
+    "build-client:watch": "jsii -w",
+    "package-client": "jsii-pacmak -vvv"
+  },
+  "keywords": [
+    "jsii",
+    "cdk",
+    "elsa-data"
+  ],
+  "jsii": {
+    "outdir": "dist",
+    "targets": {}
+  },
+  "peerDependencies": {
+    "aws-cdk-lib": "^2.50.0",
+    "constructs": "^10.2.0"
+  },
+  "dependencies": {
+    "elsa-data-aws-infrastructure-shared": "file:../shared"
+  },
+  "bundledDependencies": [
+    "elsa-data-aws-infrastructure-shared"
+  ],
+  "devDependencies": {
+    "aws-cdk-lib": "2.50.0",
+    "constructs": "10.2.0",
+    "jsii": "5.1.10",
+    "jsii-pacmak": "1.86.1",
+    "prettier": "3.0.1",
+    "publib": "0.2.737",
+    "typescript": "5.1.6"
+  }
+}

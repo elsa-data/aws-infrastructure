@@ -105,6 +105,3 @@ dist
 
 .idea/
 .DS_Store
-
-cdk.out/
-cdk.context.json

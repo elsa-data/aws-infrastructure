@@ -2,15 +2,10 @@ import { aws_ec2 as ec2, Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { FargateService } from "aws-cdk-lib/aws-ecs";
 import {
-  HealthCheck,
   NetworkLoadBalancer,
   Protocol,
-  SslPolicy,
 } from "aws-cdk-lib/aws-elasticloadbalancingv2";
-import { ICertificate } from "aws-cdk-lib/aws-certificatemanager";
-import { ARecord, IHostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { SubnetType } from "aws-cdk-lib/aws-ec2";
-import { LoadBalancerTarget } from "aws-cdk-lib/aws-route53-targets";
 
 export type EdgeDbLoadBalancerProtocolPassthroughProps = {
   // the port that the load balancer will listen on for TCP pass through work - this is the normal

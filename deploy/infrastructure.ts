@@ -1,7 +1,7 @@
 import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
 import { Duration } from "aws-cdk-lib";
-import { InfrastructureStack } from "./infrastructure-stack";
+import { InfrastructureStack } from "elsa-data-aws-infrastructure";
 
 const app = new cdk.App();
 
@@ -30,7 +30,7 @@ new InfrastructureStack(app, "ElsaDataDevInfrastructureStack", {
     // use the dev VPC that already exists
     vpcNameOrDefaultOrNull: "main-vpc",
   },
-  namespace: {
+  ns: {
     name: "elsa-data",
   },
   dns: {
@@ -77,7 +77,7 @@ new InfrastructureStack(
       // we want it to construct a new custom VPC to limit possible breach surface
       vpcNameOrDefaultOrNull: null,
     },
-    namespace: {
+    ns: {
       name: "elsa-data-demo",
     },
     dns: {
@@ -128,7 +128,7 @@ new InfrastructureStack(
       // we want it to construct a new custom VPC to limit possible breach surface
       vpcNameOrDefaultOrNull: null,
     },
-    namespace: {
+    ns: {
       name: "elsa-data-prod",
     },
     dns: {

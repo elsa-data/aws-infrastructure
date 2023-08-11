@@ -4,8 +4,6 @@ import {
   InstanceType,
   ISecurityGroup,
   IVpc,
-  Port,
-  Protocol,
   SecurityGroup,
 } from "aws-cdk-lib/aws-ec2";
 import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
@@ -21,7 +19,6 @@ import { BaseDatabase } from "./base-database";
 import {
   PostgresCommon,
   PostgresInstance,
-  PostgresServerlessV2,
 } from "../infrastructure-stack-database-props";
 
 type InstanceBaseDatabaseProps = PostgresCommon &
