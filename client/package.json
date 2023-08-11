@@ -38,7 +38,7 @@
     "elsa-data-aws-infrastructure-shared"
   ],
   "devDependencies": {
-    "aws-cdk-lib": "2.50.0",
+    "aws-cdk-lib": "2.80.0",
     "constructs": "10.2.0",
     "jsii": "5.1.10",
     "jsii-pacmak": "1.86.1",
