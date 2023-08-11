@@ -41,7 +41,7 @@ jobs:
       - run: npm ci
         working-directory: client
 
-      - run: npm version ${{github.ref_name}}
+      - run: npm version 1.0.0 # ${{github.ref_name}}
         working-directory: client
 
       - run: npm run build-client
@@ -55,7 +55,7 @@ jobs:
       - run: npm ci
         working-directory: stack
 
-      - run: npm version ${{github.ref_name}}
+      - run: npm version 1.0.0 # ${{github.ref_name}}
         working-directory: stack
 
       - run: npm run build
