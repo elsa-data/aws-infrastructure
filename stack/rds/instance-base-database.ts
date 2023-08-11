@@ -44,9 +44,9 @@ export class InstanceBaseDatabase extends BaseDatabase {
   constructor(scope: Construct, id: string, props: InstanceBaseDatabaseProps) {
     super(scope, id);
 
-    // we create a security group and export its id - so we can use that as a security boundary
-    // for services that "can connect to database"
-    this._securityGroup = this.createStandardSecurityGroup(props.vpc);
+    // we create a security group (and later export its id) - so we can use that as a security boundary
+    // for services where membership allows you to "connect to the database"
+    this._securityGroup = this.createMembershipSecurityGroup(props.vpc);
 
     const engine = rds.DatabaseInstanceEngine.postgres({
       version: props.overridePostgresVersion ?? PostgresEngineVersion.VER_14,

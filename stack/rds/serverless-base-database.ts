@@ -37,7 +37,7 @@ export class ServerlessBaseDatabase extends BaseDatabase {
 
     // we create a security group and export its id - so we can use that as a security boundary
     // for services that "can connect to database"
-    this._securityGroup = this.createStandardSecurityGroup(props.vpc);
+    this._securityGroup = this.createMembershipSecurityGroup(props.vpc);
 
     this._cluster = new ServerlessCluster(this, "ServerlessCluster", {
       vpc: props.vpc,

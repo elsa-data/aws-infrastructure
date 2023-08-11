@@ -26,8 +26,8 @@ export abstract class BaseDatabase extends Construct {
     return monitoringRole;
   }
 
-  protected createStandardSecurityGroup(vpc: IVpc) {
-    return new SecurityGroup(this, "SecurityGroup", {
+  protected createMembershipSecurityGroup(vpc: IVpc) {
+    return new SecurityGroup(this, "MembershipSecurityGroup", {
       vpc: vpc,
       // databases don't use outbound traffic via a security group unless you are getting them to reach
       // out via a stored procedure or something

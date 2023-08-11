@@ -1,6 +1,7 @@
 import {
   aws_secretsmanager as secretsmanager,
   Duration,
+  Names,
   RemovalPolicy,
   Stack,
 } from "aws-cdk-lib";
@@ -18,6 +19,14 @@ import { StringListParameter, StringParameter } from "aws-cdk-lib/aws-ssm";
 import { HttpNamespace } from "aws-cdk-lib/aws-servicediscovery";
 import { Port, SecurityGroup } from "aws-cdk-lib/aws-ec2";
 import { camelCase } from "lodash";
+import {
+  CfnPrefixList,
+  InstanceClass,
+  InstanceSize,
+  InstanceType,
+  Port,
+  SecurityGroup,
+} from "aws-cdk-lib/aws-ec2";
 import { BaseDatabase } from "./rds/base-database";
 import { ServerlessBaseDatabase } from "./rds/serverless-base-database";
 import { EdgeDbConstruct } from "./edge-db/edge-db-construct";
@@ -138,6 +147,49 @@ export class InfrastructureStack extends Stack {
       });
     }
 
+    /* EXAMINING THE USE OF MANAGED PREFIX LIST TO CONTROL ACCESS TO "DEBUG" PORTS - WIP UNUSED
+    {
+      // AS10148 University of Melbourne
+      const uniMelbCidr = [
+        "203.21.130.0/23",
+        "192.231.127.0/24",
+        "192.43.208.0/24",
+        "203.5.64.0/21",
+        "45.113.232.0/22",
+        "103.6.252.0/22",
+        "103.12.108.0/22",
+        "128.250.0.0/16",
+        "192.43.207.0/24",
+        "115.146.80.0/20",
+        "192.101.254.0/24",
+        "203.0.40.0/24",
+        "192.43.209.0/24",
+      ];
+
+      // AS7545 TPG Internet Pty Ltd
+      const tpgCidr = ["220.240.0.0/16"];
+
+      const allCidr = uniMelbCidr.concat(tpgCidr);
+
+      const developerCfnPrefixList = new CfnPrefixList(
+        this,
+        "DeveloperCfnPrefixList",
+        {
+          addressFamily: "IPv4",
+          maxEntries: allCidr.length,
+          prefixListName: `${Names.uniqueId(this)}developerManagedPrefixList`,
+          entries: allCidr.map((cidr) => ({
+            cidr,
+          })),
+        }
+      );
+
+      new StringParameter(this, "DeveloperManagedPrefixListParameter", {
+        parameterName: `/${id}/VPC/developerManagedPrefixList`,
+        stringValue: developerCfnPrefixList.attrPrefixListId,
+      });
+    } */
+
     // we export the secrets prefix so it can be used by application stacks
     // for setting a tight (yet wildcarded) policy
     new StringParameter(this, "SecretsPrefixParameter", {
@@ -190,7 +242,10 @@ export class InfrastructureStack extends Stack {
       ],
     });
 
-    /*const tempPublicBucket = new Bucket(this, "TempPublicBucket", {
+    /* INFRASTRUCTURE THAT WOULD ALLOW CONTROLLED "PUBLIC" SHARING OF ARTIFACTS (cloud formations etc)
+       DISABLED DUE TO SCP POLICIES AT UMCCR
+
+    const tempPublicBucket = new Bucket(this, "TempPublicBucket", {
       // note we set this up for DESTROY and autoDeleteObjects, irrespective of isDevelopment - it is *meant* to be a
       // temporary bucket
       removalPolicy: RemovalPolicy.DESTROY,
@@ -432,35 +487,21 @@ export class InfrastructureStack extends Stack {
               memory: dbConfig.edgeDb.memoryLimitMiB ?? 2048,
               superUser: "elsa_superuser",
               edgeDbVersion: dbConfig.edgeDb.version,
-              enableUiFeatureFlag:
-                !!dbConfig.edgeDb.makePubliclyReachable?.enableUi,
-              enableAllIp: !!dbConfig.edgeDb.makePubliclyReachable,
+              enableUiFeatureFlag: !!dbConfig.edgeDb.makePubliclyReachable,
             },
-            edgeDbLoadBalancer: {
-              internetFacing: !!dbConfig.edgeDb.makePubliclyReachable,
+            edgeDbLoadBalancerProtocol: {
               tcpPassthroughPort: dbConfig.edgeDb.dbPort || 5656,
-              tls: dbConfig.edgeDb.makePubliclyReachable
-                ? {
-                    port:
-                      dbConfig.edgeDb.makePubliclyReachable.enableUi?.uiPort ??
-                      443,
-                    hostedPrefix:
-                      dbConfig.edgeDb.makePubliclyReachable.urlPrefix,
-                    hostedCertificate: cert!,
-                    hostedZone: hz!,
-                  }
-                : undefined,
             },
+            edgeDbLoadBalancerUi: dbConfig.edgeDb.makePubliclyReachable
+              ? {
+                  hostedPort:
+                    dbConfig.edgeDb.makePubliclyReachable.uiPort ?? 443,
+                  hostedPrefix: dbConfig.edgeDb.makePubliclyReachable.urlPrefix,
+                  hostedCertificate: cert!,
+                  hostedZone: hz!,
+                }
+              : undefined,
           });
-
-          new StringParameter(
-            this,
-            `${cdkIdSafeDbName}DatabaseEdgeDbSecurityGroupIdParameter`,
-            {
-              parameterName: `/${id}/Database/${dbName}/EdgeDb/securityGroupId`,
-              stringValue: edgeDb.securityGroup.securityGroupId,
-            }
-          );
 
           new StringParameter(
             this,

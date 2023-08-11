@@ -48,10 +48,9 @@ new InfrastructureStack(app, "ElsaDataDevInfrastructureStack", {
       makePubliclyReachable: false,
       destroyOnRemove: true,
       edgeDb: {
-        version: "3.0",
+        version: "3.2",
         makePubliclyReachable: {
           urlPrefix: "elsa-data-edge-db",
-          enableUi: {},
         },
       },
     },
@@ -96,11 +95,10 @@ new InfrastructureStack(
         makePubliclyReachable: false,
         destroyOnRemove: true,
         edgeDb: {
-          version: "3.0",
+          version: "3.1",
           // for resetting/setup of the demo instance it is useful for the EdgeDb to be accessible
           makePubliclyReachable: {
             urlPrefix: "elsa-data-demo-edge-db",
-            enableUi: {},
           },
         },
       },

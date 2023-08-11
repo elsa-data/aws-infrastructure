@@ -117,24 +117,18 @@ export type EdgeDbCommon = {
    */
   readonly dbPort?: number;
 
-  /**
-   * If present, will place the EdgeDb such that it can
-   * be reached from public IP addresses
+  /**0
+   * If present, will make the EdgeDb UI exposed publicly
    */
   readonly makePubliclyReachable?: {
     /**
-     * the DNS prefix to expose the EdgeDb instance as
+     * the DNS prefix to expose the EdgeDb UI as
      */
     readonly urlPrefix: string;
 
     /**
-     * If present - switch on the HTML user interface for the EdgeDb instance
+     * The port number to assign for UI access - defaults to 443
      */
-    readonly enableUi?: {
-      /**
-       * The port number to assign for UI access - defaults to 443
-       */
-      readonly uiPort?: number;
-    };
+    readonly uiPort?: number;
   };
 };
