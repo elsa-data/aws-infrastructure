@@ -1,0 +1,26 @@
+{
+  "name": "@umccr/elsa-data-aws-infrastructure-dev",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Deployment for dev purposes of the infrastructure stack - not for publishing",
+  "author": {
+    "name": "University of Melbourne Centre for Cancer Research",
+    "organization": true
+  },
+  "license": "MIT",
+  "scripts": {
+    "deploy": "cdk deploy",
+    "destroy": "cdk destroy",
+    "doctor": "cdk doctor"
+  },
+  "dependencies": {
+    "elsa-data-aws-infrastructure": "file:../stack"
+  },
+  "devDependencies": {
+    "aws-cdk": "2.80.0",
+    "aws-cdk-lib": "2.80.0",
+    "constructs": "10.2.0",
+    "prettier": "3.0.1",
+    "typescript": "5.1.6"
+  }
+}

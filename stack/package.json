@@ -6,7 +6,7 @@
     "name": "University of Melbourne Centre for Cancer Research",
     "organization": true
   },
-  "main": "infrastructure-stack.ts",
+  "main": "infrastructure-stack.js",
   "types": "infrastructure-stack.d.ts",
   "repository": {
     "type": "git",
