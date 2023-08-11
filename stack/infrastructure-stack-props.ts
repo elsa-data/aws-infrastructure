@@ -4,6 +4,29 @@ import {
   PostgresServerlessV2,
 } from "./infrastructure-stack-database-props";
 
+export interface InfrastructureStackNetworkProps {
+  /**
+   * Controls the VPC that will be used, defaulted to, or constructed.
+   * See vpc.ts.
+   */
+  readonly vpcNameOrDefaultOrNull?: string;
+}
+
+export interface InfrastructureStackNamespaceProps {
+  /**
+   * Controls the CloudMap namespace that will be created
+   */
+  readonly name: string;
+}
+
+export interface InfrastructureStackDnsProps {
+  /**
+   * Specifies a Route 53 zone under our control that we will create
+   * a wildcard SSL certificate for
+   */
+  readonly hostedZoneName: string;
+}
+
 export interface InfrastructureStackProps extends StackProps {
   /**
    * A master control switch that tells us that this infrastructure is destined
@@ -16,52 +39,32 @@ export interface InfrastructureStackProps extends StackProps {
    * The default assumption if this is not present is that all infrastructure
    * is as locked down as possible.
    */
-  isDevelopment?: boolean;
+  readonly isDevelopment?: boolean;
 
   /**
-   * The description of the infrastructure as used for the CloudFormation stack.
-   * This gives devops an immediate feedback on the purpose of the stack so
-   * should be descriptive of the service/project.
-   * "Infrastructure for Blah - an application used to discover novel variants"
+   * The configuration of a new network - or existing network to re-use.
    */
-  description: string;
-
-  network: {
-    /**
-     * Controls the VPC that will be used, defaulted to, or constructed.
-     * See vpc.ts.
-     */
-    vpcNameOrDefaultOrNull: string | "default" | null;
-  };
+  readonly network: InfrastructureStackNetworkProps;
 
   /**
    * The configuration of the private API only namespace associated with
    * *all* apps/services in this infrastructure
    */
-  namespace?: {
-    /**
-     * Controls the CloudMap namespace that will be created
-     */
-    name: string;
-  };
+  readonly ns?: InfrastructureStackNamespaceProps;
 
   /**
    * The configuration of any DNS associated with *all* applications that will be
    * installed to this infrastructure
    */
-  dns?: {
-    /**
-     * Specifies a Route 53 zone under our control that we will create
-     * a wildcard SSL certificate for
-     */
-    hostedZoneName: string;
-  };
+  readonly dns?: InfrastructureStackDnsProps;
 
   /**
    * The configuration of any databases we want to spin up.
    * Keyed by the database name.
+   *
+   * @jsii ignore
    */
-  databases?: {
+  readonly databases?: {
     [name: string]: PostgresInstance | PostgresServerlessV2;
   };
 
@@ -71,5 +74,5 @@ export interface InfrastructureStackProps extends StackProps {
    * Any application should set up a wildcard policy to allow getting
    * this value (with a trailing wildcard "*")
    */
-  secretsPrefix: string;
+  readonly secretsPrefix: string;
 }

@@ -1,7 +1,7 @@
 import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
 import { Duration } from "aws-cdk-lib";
-import { InfrastructureStack } from "./infrastructure-stack";
+import { InfrastructureStack } from "../stack/infrastructure-stack";
 
 const app = new cdk.App();
 

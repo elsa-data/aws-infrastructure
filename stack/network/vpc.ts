@@ -1,4 +1,4 @@
-import { StackProps, Tags } from "aws-cdk-lib";
+import { StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import {
@@ -19,7 +19,7 @@ import {
 export function smartVpcConstruct(
   scope: Construct,
   id: string,
-  vpcNameOrDefaultOrNull: string | "default" | null,
+  vpcNameOrDefaultOrNull: string | "default" | undefined,
   enableEcrEndpoints: boolean
 ): IVpc {
   // if not vpc details are given then we construct a new VPC
@@ -34,7 +34,7 @@ export function smartVpcConstruct(
       name: string,
       service: InterfaceVpcEndpointAwsService
     ) => {
-      const ecrEndpoint = vpc.addInterfaceEndpoint(name + "Endpoint", {
+      vpc.addInterfaceEndpoint(name + "Endpoint", {
         service: service,
         privateDnsEnabled: true,
         subnets: {
@@ -64,7 +64,7 @@ export function smartVpcConstruct(
   });
 }
 class NatVPC extends ec2.Vpc {
-  constructor(scope: Construct, id: string, props?: StackProps) {
+  constructor(scope: Construct, id: string, _props?: StackProps) {
     super(scope, id, {
       maxAzs: 99, // 99 will mean that the VPC expands to consume as many AZs as it can in the region
       natGateways: 1,

@@ -16,17 +16,31 @@ import {
 import { InfrastructureStackProps } from "./infrastructure-stack-props";
 import { StringListParameter, StringParameter } from "aws-cdk-lib/aws-ssm";
 import { HttpNamespace } from "aws-cdk-lib/aws-servicediscovery";
-import {
-  InstanceClass,
-  InstanceSize,
-  InstanceType,
-  Port,
-  SecurityGroup,
-} from "aws-cdk-lib/aws-ec2";
-import _ from "lodash";
+import { Port, SecurityGroup } from "aws-cdk-lib/aws-ec2";
+import { camelCase } from "lodash";
 import { BaseDatabase } from "./rds/base-database";
 import { ServerlessBaseDatabase } from "./rds/serverless-base-database";
 import { EdgeDbConstruct } from "./edge-db/edge-db-construct";
+import {
+  vpcAvailabilityZonesParameterName,
+  vpcIdParameterName,
+  vpcInternalSecurityGroupIdParameterName,
+  vpcIsolatedSubnetIdsParameterName,
+  vpcIsolatedSubnetRouteTableIdsParameterName,
+  vpcPrivateSubnetIdsParameterName,
+  vpcPrivateSubnetRouteTableIdsParameterName,
+  vpcPublicSubnetIdsParameterName,
+  vpcPublicSubnetRouteTableIdsParameterName,
+  vpcSecurityGroupIdParameterName,
+} from "elsa-data-aws-infrastructure-shared";
+
+export {
+  InfrastructureStackProps,
+  InfrastructureStackNamespaceProps,
+  InfrastructureStackDnsProps,
+  InfrastructureStackNetworkProps,
+} from "./infrastructure-stack-props";
+export {} from "./infrastructure-stack-database-props";
 
 /**
  * A basic infrastructure stack that supports
@@ -53,42 +67,42 @@ export class InfrastructureStack extends Stack {
     // https://lzygo1995.medium.com/how-to-share-information-between-stacks-through-ssm-parameter-store-in-cdk-1a64e4e9d83a
 
     new StringParameter(this, "VpcIdParameter", {
-      parameterName: `/${id}/VPC/vpcId`,
+      parameterName: vpcIdParameterName(id),
       stringValue: vpc.vpcId,
     });
 
     new StringListParameter(this, "AvailabilityZonesParameter", {
-      parameterName: `/${id}/VPC/availabilityZones`,
+      parameterName: vpcAvailabilityZonesParameterName(id),
       stringListValue: vpc.availabilityZones,
     });
 
     new StringListParameter(this, "PublicSubnetIdsParameter", {
-      parameterName: `/${id}/VPC/publicSubnetIds`,
+      parameterName: vpcPublicSubnetIdsParameterName(id),
       stringListValue: vpc.publicSubnets.map((a) => a.subnetId),
     });
 
     new StringListParameter(this, "PublicSubnetRouteTableIdsParameter", {
-      parameterName: `/${id}/VPC/publicSubnetRouteTableIds`,
+      parameterName: vpcPublicSubnetRouteTableIdsParameterName(id),
       stringListValue: vpc.publicSubnets.map((a) => a.routeTable.routeTableId),
     });
 
     new StringListParameter(this, "PrivateSubnetIdsParameter", {
-      parameterName: `/${id}/VPC/privateSubnetIds`,
+      parameterName: vpcPrivateSubnetIdsParameterName(id),
       stringListValue: vpc.privateSubnets.map((a) => a.subnetId),
     });
 
     new StringListParameter(this, "PrivateSubnetRouteTableIdsParameter", {
-      parameterName: `/${id}/VPC/privateSubnetRouteTableIds`,
+      parameterName: vpcPrivateSubnetRouteTableIdsParameterName(id),
       stringListValue: vpc.privateSubnets.map((a) => a.routeTable.routeTableId),
     });
 
     new StringListParameter(this, "IsolatedSubnetIdsParameter", {
-      parameterName: `/${id}/VPC/isolatedSubnetIds`,
+      parameterName: vpcIsolatedSubnetIdsParameterName(id),
       stringListValue: vpc.isolatedSubnets.map((a) => a.subnetId),
     });
 
     new StringListParameter(this, "IsolatedSubnetRouteTableIdsParameter", {
-      parameterName: `/${id}/VPC/isolatedSubnetRouteTableIds`,
+      parameterName: vpcIsolatedSubnetRouteTableIdsParameterName(id),
       stringListValue: vpc.isolatedSubnets.map(
         (a) => a.routeTable.routeTableId
       ),
@@ -101,7 +115,7 @@ export class InfrastructureStack extends Stack {
       });
 
       new StringParameter(this, "SecurityGroupIdParameter", {
-        parameterName: `/${id}/VPC/securityGroupId`,
+        parameterName: vpcSecurityGroupIdParameterName(id),
         stringValue: sg.securityGroupId,
       });
     }
@@ -119,7 +133,7 @@ export class InfrastructureStack extends Stack {
       internalSg.addEgressRule(internalSg, Port.allTraffic());
 
       new StringParameter(this, "InternalSecurityGroupIdParameter", {
-        parameterName: `/${id}/VPC/internalSecurityGroupId`,
+        parameterName: vpcInternalSecurityGroupIdParameterName(id),
         stringValue: internalSg.securityGroupId,
       });
     }
@@ -222,9 +236,9 @@ export class InfrastructureStack extends Stack {
       stringValue: tempPrivateBucket.bucketName,
     });
 
-    if (props.namespace) {
+    if (props.ns) {
       const ns = new HttpNamespace(this, "Namespace", {
-        name: props.namespace.name,
+        name: props.ns.name,
       });
 
       new StringParameter(this, "NamespaceNameParameter", {
@@ -280,7 +294,7 @@ export class InfrastructureStack extends Stack {
             `The database name ${dbName} doesn't meet the limited list of allowed characters (the name is used in SSM etc)`
           );
 
-        let cdkIdSafeDbName = _.camelCase(dbName);
+        let cdkIdSafeDbName = camelCase(dbName);
 
         // from above - the length of this must be > 0
         // anyhow we want first chat to be capital if possible

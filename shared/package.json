@@ -1,0 +1,16 @@
+{
+  "name": "elsa-data-aws-infrastructure-shared",
+  "version": "0.0.0",
+  "description": "A tiny piece of Javascript that lets us share string definitions between client/stack",
+  "author": {
+    "name": "University of Melbourne Centre for Cancer Research",
+    "organization": true
+  },
+  "main": "index.js",
+  "types": "index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/umccr/elsa-data-aws-infrastructure"
+  },
+  "license": "MIT"
+}
