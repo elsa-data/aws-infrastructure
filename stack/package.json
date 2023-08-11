@@ -10,16 +10,10 @@
   "types": "infrastructure-stack.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/umccr/elsa-data-aws-infrastructure"
+    "url": "https://github.com/umccr/elsa-data-aws-infrastructure/stack"
   },
   "license": "MIT",
   "scripts": {
-    "dev-deploy": "cdk --app 'npx ts-node infrastructure.ts' deploy ElsaDataDevInfrastructureStack",
-    "dev-destroy": "cdk --app 'npx ts-node infrastructure.ts' destroy ElsaDataDevInfrastructureStack",
-    "agdemo-deploy": "cdk --app 'npx ts-node infrastructure.ts' deploy ElsaDataDemoAustralianGenomicsInfrastructureStack",
-    "agdemo-destroy": "cdk --app 'npx ts-node infrastructure.ts' destroy ElsaDataDemoAustralianGenomicsInfrastructureStack",
-    "ag-deploy": "cdk --app 'npx ts-node infrastructure.ts' deploy ElsaDataProdAustralianGenomicsInfrastructureStack",
-    "ag-destroy": "cdk --app 'npx ts-node infrastructure.ts' destroy ElsaDataProdAustralianGenomicsInfrastructureStack",
     "build": "jsii -vvv",
     "build:watch": "jsii -w",
     "package": "jsii-pacmak -vvv"
@@ -30,16 +24,7 @@
   ],
   "jsii": {
     "outdir": "dist",
-    "targets": {
-      "python": {
-        "module": "elsa_data_infrastructure",
-        "distName": "elsa-data-infrastructure",
-        "classifiers": [
-          "Framework :: AWS CDK",
-          "Framework :: AWS CDK :: 1"
-        ]
-      }
-    }
+    "targets": {}
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.80.0",
