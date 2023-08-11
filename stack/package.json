@@ -1,5 +1,5 @@
 {
-  "name": "elsa-data-aws-infrastructure",
+  "name": "@umccr/elsa-data-aws-infrastructure",
   "version": "0.0.0",
   "description": "A CDK stack that deploys well configured infrastructure for use by Elsa Data",
   "author": {

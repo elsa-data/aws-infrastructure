@@ -2,7 +2,7 @@
   "name": "elsa-data-aws-infrastructure-shared",
   "version": "0.0.0",
   "private": true,
-  "description": "A tiny piece of Javascript that lets us share string definitions between client/stack",
+  "description": "A tiny piece of Javascript that lets us share string definitions between client/stack - not for publishing to npm",
   "author": {
     "name": "University of Melbourne Centre for Cancer Research",
     "organization": true

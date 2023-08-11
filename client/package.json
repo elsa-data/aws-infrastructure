@@ -1,5 +1,5 @@
 {
-  "name": "elsa-data-aws-infrastructure-client",
+  "name": "@umccr/elsa-data-aws-infrastructure-client",
   "version": "0.0.0",
   "description": "A library for clients wanting to use the Elsa Data infrastructure stack",
   "author": {
