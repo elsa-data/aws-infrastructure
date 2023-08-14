@@ -35,3 +35,32 @@ export function vpcSecurityGroupIdParameterName(
 export function vpcInternalSecurityGroupIdParameterName(
   infrastructureStackId: string
 ): string;
+
+export function secretsManagerSecretsPrefixParameterName(
+  infrastructureStackId: string
+): string;
+
+export function namespaceNameParameterName(
+  infrastructureStackId: string
+): string;
+
+export function namespaceIdParameterName(infrastructureStackId: string): string;
+
+export function namespaceArnParameterName(
+  infrastructureStackId: string
+): string;
+
+export function databaseEdgeDbDsnNoPasswordOrDatabaseParameterName(
+  infrastructureStackId: string,
+  dbName: string
+): string;
+
+export function databaseEdgeDbAdminPasswordSecretArnParameterName(
+  infrastructureStackId: string,
+  dbName: string
+): string;
+
+export function databaseEdgeDbSecurityGroupIdParameterName(
+  infrastructureStackId: string,
+  dbName: string
+): string;

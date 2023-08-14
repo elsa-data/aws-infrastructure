@@ -1,15 +1,12 @@
 import { StackProps } from "aws-cdk-lib";
-import {
-  PostgresInstance,
-  PostgresServerlessV2,
-} from "./infrastructure-stack-database-props";
+import { PostgresCommon } from "./infrastructure-stack-database-props";
 
 export interface InfrastructureStackNetworkProps {
   /**
    * Controls the VPC that will be used, defaulted to, or constructed.
    * See vpc.ts.
    */
-  readonly vpcNameOrDefaultOrNull?: string;
+  readonly vpcNameOrDefaultOrUndefined?: string;
 }
 
 export interface InfrastructureStackNamespaceProps {
@@ -60,17 +57,12 @@ export interface InfrastructureStackProps extends StackProps {
 
   /**
    * The configuration of any databases we want to spin up.
-   * Keyed by the database name.
-   *
-   * @jsii ignore
    */
-  readonly databases?: {
-    [name: string]: PostgresInstance | PostgresServerlessV2;
-  };
+  readonly databases?: PostgresCommon[];
 
   /**
    * A prefix that is used for constructing any AWS secrets associated with
-   * this infrastructure (i.e. postgres password).
+   * this infrastructure (i.e. postgres password secret).
    * Any application should set up a wildcard policy to allow getting
    * this value (with a trailing wildcard "*")
    */

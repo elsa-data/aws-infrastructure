@@ -16,20 +16,16 @@ import {
 import { DatabaseInstance, PostgresEngineVersion } from "aws-cdk-lib/aws-rds";
 import { Construct } from "constructs";
 import { BaseDatabase } from "./base-database";
-import {
-  PostgresCommon,
-  PostgresInstance,
-} from "../infrastructure-stack-database-props";
+import { PostgresCommon } from "../infrastructure-stack-database-props";
 
-type InstanceBaseDatabaseProps = PostgresCommon &
-  PostgresInstance & {
-    databaseName: string;
+type InstanceBaseDatabaseProps = PostgresCommon & {
+  databaseName: string;
 
-    vpc: IVpc;
+  vpc: IVpc;
 
-    // the secret of the database admin password to use
-    secret: ISecret;
-  };
+  // the secret of the database admin password to use
+  secret: ISecret;
+};
 
 /**
  * A construct representing a base database to install - in this
@@ -49,7 +45,7 @@ export class InstanceBaseDatabase extends BaseDatabase {
     this._securityGroup = this.createMembershipSecurityGroup(props.vpc);
 
     const engine = rds.DatabaseInstanceEngine.postgres({
-      version: props.overridePostgresVersion ?? PostgresEngineVersion.VER_14,
+      version: PostgresEngineVersion.VER_14,
     });
 
     this._instance = new DatabaseInstance(scope, "DatabaseInstance", {

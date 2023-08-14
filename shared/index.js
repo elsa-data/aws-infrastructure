@@ -40,6 +40,43 @@ function vpcInternalSecurityGroupIdParameterName(infrastructureStackId) {
   return `/${infrastructureStackId}/VPC/internalSecurityGroupId`;
 }
 
+function secretsManagerSecretsPrefixParameterName(infrastructureStackId) {
+  return `/${infrastructureStackId}/SecretsManager/secretsPrefix`;
+}
+
+function namespaceNameParameterName(infrastructureStackId) {
+  return `/${infrastructureStackId}/HttpNamespace/namespaceName`;
+}
+
+function namespaceIdParameterName(infrastructureStackId) {
+  return `/${infrastructureStackId}/HttpNamespace/namespaceId`;
+}
+
+function namespaceArnParameterName(infrastructureStackId) {
+  return `/${infrastructureStackId}/HttpNamespace/namespaceArn`;
+}
+
+function databaseEdgeDbDsnNoPasswordOrDatabaseParameterName(
+  infrastructureStackId,
+  dbName
+) {
+  return `/${infrastructureStackId}/Database/${dbName}/EdgeDb/dsnNoPasswordOrDatabase`;
+}
+
+function databaseEdgeDbAdminPasswordSecretArnParameterName(
+  infrastructureStackId,
+  dbName
+) {
+  return `/${infrastructureStackId}/Database/${dbName}/EdgeDb/adminPasswordSecretArn`;
+}
+
+function databaseEdgeDbSecurityGroupIdParameterName(
+  infrastructureStackId,
+  dbName
+) {
+  return `/${infrastructureStackId}/Database/${dbName}/EdgeDb/securityGroupId`;
+}
+
 module.exports = {
   vpcIdParameterName,
   vpcAvailabilityZonesParameterName,
@@ -51,4 +88,11 @@ module.exports = {
   vpcIsolatedSubnetRouteTableIdsParameterName,
   vpcSecurityGroupIdParameterName,
   vpcInternalSecurityGroupIdParameterName,
+  secretsManagerSecretsPrefixParameterName,
+  namespaceNameParameterName,
+  namespaceIdParameterName,
+  namespaceArnParameterName,
+  databaseEdgeDbDsnNoPasswordOrDatabaseParameterName,
+  databaseEdgeDbAdminPasswordSecretArnParameterName,
+  databaseEdgeDbSecurityGroupIdParameterName,
 };

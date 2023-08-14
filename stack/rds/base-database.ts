@@ -60,11 +60,12 @@ export abstract class BaseDatabase extends Construct {
       );
     } else {
       // the db security group can only be connected to on the default db port and only from things ALSO IN THE SAME SECURITY GROUP
-      this.securityGroup.addIngressRule(
-        securityGroup,
-        ec2.Port.tcp(databasePort)
-      );
+      securityGroup.addIngressRule(securityGroup, ec2.Port.tcp(databasePort));
     }
+    // our membership security group allows outgoing access to things in the SAME SECURITY GROUP
+    // (we use allTraffic safely for egress here - as those other services will be responsible
+    // for protected their incoming ports with their own ingress rules)
+    securityGroup.addEgressRule(securityGroup, ec2.Port.allTraffic());
   }
 
   public abstract get dsnWithTokens(): string;
