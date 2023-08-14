@@ -4,19 +4,15 @@ import { ServerlessCluster } from "aws-cdk-lib/aws-rds";
 import { Construct } from "constructs";
 import { aws_ec2 as ec2, aws_rds as rds, RemovalPolicy } from "aws-cdk-lib";
 import { BaseDatabase } from "./base-database";
-import {
-  PostgresCommon,
-  PostgresServerlessV2,
-} from "../infrastructure-stack-database-props";
+import { PostgresCommon } from "../infrastructure-stack-database-props";
 
-type ServerlessBaseDatabaseProps = PostgresCommon &
-  PostgresServerlessV2 & {
-    vpc: IVpc;
+type ServerlessBaseDatabaseProps = PostgresCommon & {
+  vpc: IVpc;
 
-    databaseName: string;
+  databaseName: string;
 
-    secret: ISecret;
-  };
+  secret: ISecret;
+};
 
 /**
  * A construct representing the base database we might use with EdgeDb - in this
@@ -48,9 +44,7 @@ export class ServerlessBaseDatabase extends BaseDatabase {
           : ec2.SubnetType.PRIVATE_ISOLATED,
       },
       engine: rds.DatabaseClusterEngine.auroraPostgres({
-        version:
-          props.overridePostgresVersion ??
-          rds.AuroraPostgresEngineVersion.VER_14_7,
+        version: rds.AuroraPostgresEngineVersion.VER_14_7,
       }),
       // the default database to create in the cluster - we insist on it being named otherwise no default db is made
       defaultDatabaseName: props.databaseName,

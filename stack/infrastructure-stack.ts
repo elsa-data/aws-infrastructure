@@ -22,6 +22,10 @@ import { BaseDatabase } from "./rds/base-database";
 import { ServerlessBaseDatabase } from "./rds/serverless-base-database";
 import { EdgeDbConstruct } from "./edge-db/edge-db-construct";
 import {
+  databaseEdgeDbAdminPasswordSecretArnParameterName,
+  databaseEdgeDbDsnNoPasswordOrDatabaseParameterName,
+  databaseEdgeDbSecurityGroupIdParameterName,
+  secretsManagerSecretsPrefixParameterName,
   vpcAvailabilityZonesParameterName,
   vpcIdParameterName,
   vpcInternalSecurityGroupIdParameterName,
@@ -40,7 +44,12 @@ export {
   InfrastructureStackDnsProps,
   InfrastructureStackNetworkProps,
 } from "./infrastructure-stack-props";
-export {} from "./infrastructure-stack-database-props";
+export {
+  PostgresCommon,
+  PostgresCommonMonitoring,
+  EdgeDbCommon,
+  EdgeDbPublic,
+} from "./infrastructure-stack-database-props";
 
 /**
  * A basic infrastructure stack that supports
@@ -60,7 +69,7 @@ export class InfrastructureStack extends Stack {
     const vpc = smartVpcConstruct(
       this,
       "VPC",
-      props.network.vpcNameOrDefaultOrNull,
+      props.network.vpcNameOrDefaultOrUndefined,
       false
     );
 
@@ -184,7 +193,7 @@ export class InfrastructureStack extends Stack {
     // we export the secrets prefix so it can be used by application stacks
     // for setting a tight (yet wildcarded) policy
     new StringParameter(this, "SecretsPrefixParameter", {
-      parameterName: `/${id}/SecretsManager/secretsPrefix`,
+      parameterName: secretsManagerSecretsPrefixParameterName(id),
       stringValue: props.secretsPrefix,
     });
 
@@ -334,13 +343,13 @@ export class InfrastructureStack extends Stack {
     }
 
     if (props.databases) {
-      for (const [dbName, dbConfig] of Object.entries(props.databases)) {
-        if (!/[a-zA-Z0-9_.]+/.test(dbName))
+      for (const dbConfig of props.databases) {
+        if (!/[a-zA-Z0-9_.]+/.test(dbConfig.name))
           throw new Error(
-            `The database name ${dbName} doesn't meet the limited list of allowed characters (the name is used in SSM etc)`
+            `The database name ${dbConfig.name} doesn't meet the limited list of allowed characters (the name is used in SSM etc)`
           );
 
-        let cdkIdSafeDbName = camelCase(dbName);
+        let cdkIdSafeDbName = camelCase(dbConfig.name);
 
         // from above - the length of this must be > 0
         // anyhow we want first chat to be capital if possible
@@ -352,7 +361,7 @@ export class InfrastructureStack extends Stack {
           this,
           `${cdkIdSafeDbName}Secret`,
           {
-            description: `For database ${dbName} - secret containing RDS details such as admin username and password`,
+            description: `For database ${dbConfig.name} - secret containing RDS details such as admin username and password`,
             secretName: props.secretsPrefix
               ? `${props.secretsPrefix}${cdkIdSafeDbName}Rds`
               : undefined,
@@ -369,11 +378,11 @@ export class InfrastructureStack extends Stack {
 
         let baseDb: BaseDatabase;
 
-        switch (dbConfig.type) {
+        switch (dbConfig.postgresType) {
           case "postgres-instance":
             baseDb = new InstanceBaseDatabase(this, cdkIdSafeDbName, {
               vpc: vpc,
-              databaseName: dbName,
+              databaseName: dbConfig.name,
               secret: baseDbSecret,
               ...dbConfig,
             });
@@ -381,11 +390,15 @@ export class InfrastructureStack extends Stack {
           case "postgres-serverless-2":
             baseDb = new ServerlessBaseDatabase(this, cdkIdSafeDbName, {
               vpc: vpc,
-              databaseName: dbName,
+              databaseName: dbConfig.name,
               secret: baseDbSecret,
               ...dbConfig,
             });
             break;
+          default:
+            throw new Error(
+              `Unknown postgres database type ${dbConfig.postgresType}`
+            );
         }
 
         // TODO this actually resolves our tokens as it stores it - which is not what
@@ -399,7 +412,7 @@ export class InfrastructureStack extends Stack {
           this,
           `${cdkIdSafeDbName}DatabaseDsnWithPasswordParameter`,
           {
-            parameterName: `/${id}/Database/${dbName}/dsnWithPassword`,
+            parameterName: `/${id}/Database/${dbConfig.name}/dsnWithPassword`,
             stringValue: baseDb.dsnWithTokens,
           }
         );
@@ -408,7 +421,7 @@ export class InfrastructureStack extends Stack {
           this,
           `${cdkIdSafeDbName}DatabaseDsnNoPasswordParameter`,
           {
-            parameterName: `/${id}/Database/${dbName}/dsnNoPassword`,
+            parameterName: `/${id}/Database/${dbConfig.name}/dsnNoPassword`,
             stringValue: baseDb.dsnNoPassword,
           }
         );
@@ -417,13 +430,13 @@ export class InfrastructureStack extends Stack {
           this,
           `${cdkIdSafeDbName}DatabaseHostnameParameter`,
           {
-            parameterName: `/${id}/Database/${dbName}/hostname`,
+            parameterName: `/${id}/Database/${dbConfig.name}/hostname`,
             stringValue: baseDb.hostname,
           }
         );
 
         new StringParameter(this, `${cdkIdSafeDbName}DatabasePortParameter`, {
-          parameterName: `/${id}/Database/${dbName}/port`,
+          parameterName: `/${id}/Database/${dbConfig.name}/port`,
           stringValue: baseDb.port.toString(),
         });
 
@@ -431,7 +444,7 @@ export class InfrastructureStack extends Stack {
           this,
           `${cdkIdSafeDbName}DatabaseAdminUserParameter`,
           {
-            parameterName: `/${id}/Database/${dbName}/adminUser`,
+            parameterName: `/${id}/Database/${dbConfig.name}/adminUser`,
             stringValue: dbConfig.adminUser,
           }
         );
@@ -440,7 +453,7 @@ export class InfrastructureStack extends Stack {
           this,
           `${cdkIdSafeDbName}DatabaseAdminPasswordSecretArnParameter`,
           {
-            parameterName: `/${id}/Database/${dbName}/adminPasswordSecretArn`,
+            parameterName: `/${id}/Database/${dbConfig.name}/adminPasswordSecretArn`,
             stringValue: baseDbSecret.secretArn,
           }
         );
@@ -449,7 +462,7 @@ export class InfrastructureStack extends Stack {
           this,
           `${cdkIdSafeDbName}DatabaseSecurityGroupIdParameter`,
           {
-            parameterName: `/${id}/Database/${dbName}/securityGroupId`,
+            parameterName: `/${id}/Database/${dbConfig.name}/securityGroupId`,
             stringValue: baseDb.securityGroup.securityGroupId,
           }
         );
@@ -467,7 +480,7 @@ export class InfrastructureStack extends Stack {
            */
           const edgeDb = new EdgeDbConstruct(this, `${cdkIdSafeDbName}EdgeDb`, {
             vpc: vpc,
-            rdsDatabaseDisplayName: dbName,
+            rdsDatabaseDisplayName: dbConfig.name,
             rdsDatabaseCdkIdSafeDbName: cdkIdSafeDbName,
             secretsPrefix: props.secretsPrefix,
             edgeDbService: {
@@ -498,7 +511,10 @@ export class InfrastructureStack extends Stack {
             this,
             `${cdkIdSafeDbName}DatabaseEdgeDbDsnNoPasswordOrDatabaseParameter`,
             {
-              parameterName: `/${id}/Database/${dbName}/EdgeDb/dsnNoPasswordOrDatabase`,
+              parameterName: databaseEdgeDbDsnNoPasswordOrDatabaseParameterName(
+                id,
+                dbConfig.name
+              ),
               stringValue: edgeDb.dsnForEnvironmentVariable,
             }
           );
@@ -507,8 +523,23 @@ export class InfrastructureStack extends Stack {
             this,
             `${cdkIdSafeDbName}DatabaseEdgeDbAdminPasswordSecretArnParameter`,
             {
-              parameterName: `/${id}/Database/${dbName}/EdgeDb/adminPasswordSecretArn`,
+              parameterName: databaseEdgeDbAdminPasswordSecretArnParameterName(
+                id,
+                dbConfig.name
+              ),
               stringValue: edgeDb.passwordSecret.secretArn,
+            }
+          );
+
+          new StringParameter(
+            this,
+            `${cdkIdSafeDbName}DatabaseEdgeDbSecurityGroupIdParameter`,
+            {
+              parameterName: databaseEdgeDbSecurityGroupIdParameterName(
+                id,
+                dbConfig.name
+              ),
+              stringValue: edgeDb.securityGroup.securityGroupId,
             }
           );
         }

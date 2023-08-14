@@ -1,101 +1,92 @@
 import { InstanceType } from "aws-cdk-lib/aws-ec2";
-import {
-  AuroraPostgresEngineVersion,
-  PostgresEngineVersion,
-} from "aws-cdk-lib/aws-rds";
 import { Duration } from "aws-cdk-lib";
 
-/**
- * A regular Postgres instance database type we can
- * ask to be installed as part of our infrastructure
- */
-export type PostgresInstance = PostgresCommon & {
-  type: "postgres-instance";
+// NOTE: this was all set up with some nice typescript types - that separated
+// out different postgres settings.. unfortunately - those types are not compatible
+// with JSII, so we have had to merge all the fields into one mega Common type.
+// Basically this is now all a bit yuck but is necessary to support languages other
+// than typescript
+
+export interface PostgresCommon {
+  /**
+   * The type of the postgres to create
+   */
+  readonly postgresType: "postgres-instance" | "postgres-serverless-2";
 
   /**
-   * The specific instance type - otherwise default to a small burstable
+   * The name of the database to create
    */
-  instanceType?: InstanceType;
+  readonly name: string;
 
-  /**
-   * If set will override the postgres engine used - otherwise
-   * we will make this by default aggressively track the latest postgres release
-   */
-  overridePostgresVersion?: PostgresEngineVersion;
-};
-
-/**
- * A serverless V2 Postgres instance database type we can
- * ask to be installed as part of our infrastructure
- */
-export type PostgresServerlessV2 = PostgresCommon & {
-  type: "postgres-serverless-2";
-
-  /**
-   * The minimum number of ACU - or default to the minimum of 0.5
-   */
-  minCapacity?: number;
-
-  /**
-   * The maximum number of ACU - or default to a sensible 4
-   */
-  maxCapacity?: number;
-
-  /**
-   * If set will override the postgres engine used - otherwise
-   * we will make this by default aggressively track the latest postgres release
-   */
-  overridePostgresVersion?: AuroraPostgresEngineVersion;
-};
-
-/**
- * Settings common between all postgres databases
- */
-export type PostgresCommon = {
   /**
    * The name of the admin user to create in the database
    */
-  adminUser: string;
+  readonly adminUser: string;
 
   /**
    * If present and true, will set the database such that
    * it will autodelete/autoremove when the stack is destroyed
    */
-  destroyOnRemove?: boolean;
+  readonly destroyOnRemove?: boolean;
 
   /**
    * If present and true, will place the database such that
    * it can be reached from public IP addresses
    */
-  makePubliclyReachable?: boolean;
+  readonly makePubliclyReachable?: boolean;
 
   /**
    * If set will override the allocated storage for the db - otherwise
    * we will have this set to smallest database size allowed (20 Gib)
    */
-  overrideAllocatedStorage?: number;
+  readonly overrideAllocatedStorage?: number;
 
   /**
    * If present switches on monitoring features such as postgres
    * logs exported to cloudwatch and performance insights.
    */
-  enableMonitoring?: {
-    cloudwatchLogsExports: string[];
-    enablePerformanceInsights: true;
-    monitoringInterval: Duration;
-  };
+  readonly enableMonitoring?: PostgresCommonMonitoring;
 
   /**
    * If present - instruct us to create an edgedb in front of this db
    */
-  edgeDb?: EdgeDbCommon;
-};
+  readonly edgeDb?: EdgeDbCommon;
+
+  // -------------
+  // Settings below are only for regular Postgres instance
+  // -------------
+
+  /**
+   * The specific instance type - otherwise default to a small burstable
+   */
+  readonly instanceType?: InstanceType;
+
+  // -------------
+  // Settings below are only for serverless Postgres
+  // -------------
+
+  /**
+   * The minimum number of ACU - or default to the minimum of 0.5
+   */
+  readonly minCapacity?: number;
+
+  /**
+   * The maximum number of ACU - or default to a sensible 4
+   */
+  readonly maxCapacity?: number;
+}
+
+export interface PostgresCommonMonitoring {
+  readonly cloudwatchLogsExports: string[];
+  readonly enablePerformanceInsights: boolean;
+  readonly monitoringInterval: Duration;
+}
 
 /**
  * Settings that instruct us to connect an EdgeDb
  * in front of the given postgres instance
  */
-export type EdgeDbCommon = {
+export interface EdgeDbCommon {
   /**
    * The version string of EdgeDb that will be used for the spun up EdgeDb image
    */
@@ -120,15 +111,19 @@ export type EdgeDbCommon = {
   /**0
    * If present, will make the EdgeDb UI exposed publicly
    */
-  readonly makePubliclyReachable?: {
-    /**
-     * the DNS prefix to expose the EdgeDb UI as
-     */
-    readonly urlPrefix: string;
+  readonly makePubliclyReachable?: EdgeDbPublic;
+}
 
-    /**
-     * The port number to assign for UI access - defaults to 443
-     */
-    readonly uiPort?: number;
-  };
-};
+export interface EdgeDbPublic {
+  /**
+   * the DNS prefix to expose the EdgeDb UI as
+   */
+  readonly urlPrefix: string;
+
+  /**
+   * The port number to assign for UI access - defaults to 443. Whilst 443 is
+   * entirely sensible - I guess you could add a level of security obscurity by
+   * mapping this to another port.
+   */
+  readonly uiPort?: number;
+}

@@ -1,4 +1,4 @@
-import { aws_route53 as route53 } from "aws-cdk-lib";
+import { aws_route53 as route53, Stack } from "aws-cdk-lib";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
 import { IVpc, SecurityGroup, Vpc } from "aws-cdk-lib/aws-ec2";
 import {
@@ -7,6 +7,8 @@ import {
 } from "aws-cdk-lib/aws-servicediscovery";
 import { Certificate, ICertificate } from "aws-cdk-lib/aws-certificatemanager";
 import {
+  databaseEdgeDbSecurityGroupIdParameterName,
+  secretsManagerSecretsPrefixParameterName,
   vpcAvailabilityZonesParameterName,
   vpcIdParameterName,
   vpcIsolatedSubnetIdsParameterName,
@@ -18,6 +20,7 @@ import {
 } from "elsa-data-aws-infrastructure-shared";
 import { IHostedZone } from "aws-cdk-lib/aws-route53";
 import { Construct } from "constructs";
+import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 
 export interface DnsResult {
   readonly hostedZone: IHostedZone;
@@ -126,6 +129,13 @@ export class ElsaDataInfrastructureClient {
     };
   }
 
+  /**
+   * Return a security group that membership of will give access to the given
+   * named EdgeDb.
+   *
+   * @param scope
+   * @param databaseName
+   */
   public getEdgeDbSecurityGroupFromLookup(
     scope: Construct,
     databaseName: string
@@ -135,14 +145,38 @@ export class ElsaDataInfrastructureClient {
       "EdgeDbSecurityGroup",
       StringParameter.valueFromLookup(
         scope,
-        `/${this.infrastructureStackId}/Database/${databaseName}/EdgeDb/securityGroupId`
+        databaseEdgeDbSecurityGroupIdParameterName(
+          this.infrastructureStackId,
+          databaseName
+        )
       ),
-
       {
         // the client stacks where we use these security groups
         // should not ever edit the ingress/egress rules
         mutable: false,
       }
     );
+  }
+
+  /**
+   * A policy statement that we can use that gives access only to
+   * known Elsa Data secrets (by naming convention).
+   *
+   * @param scope
+   */
+  public getSecretPolicyStatementFromLookup(scope: Construct): PolicyStatement {
+    const secretsPrefix = StringParameter.valueFromLookup(
+      scope,
+      secretsManagerSecretsPrefixParameterName(this.infrastructureStackId)
+    );
+
+    return new PolicyStatement({
+      actions: ["secretsmanager:GetSecretValue"],
+      resources: [
+        `arn:${Stack.of(scope).partition}:secretsmanager:${
+          Stack.of(scope).region
+        }:${Stack.of(scope).account}:secret:${secretsPrefix}*`,
+      ],
+    });
   }
 }

@@ -6,6 +6,7 @@ import {
   IVpc,
   SubnetType,
 } from "aws-cdk-lib/aws-ec2";
+import { isNil } from "lodash";
 
 /**
  * The smart VPC construct allows us to either inherit an existing VPC, or create a new VPC
@@ -13,17 +14,17 @@ import {
  *
  * @param scope
  * @param id
- * @param vpcNameOrDefaultOrNull either an existing VPC id, the string "default" to indicate to let CDK pick the VPC, or null to indicate a new VPC should be created
+ * @param vpcNameOrDefaultOrUndefined either an existing VPC id, the string "default" to indicate to let CDK pick the VPC, or undefined to indicate a new VPC should be created
  * @param enableEcrEndpoints if creating a new VPC, this indicates whether we should install the endpoints to enable private ECR
  */
 export function smartVpcConstruct(
   scope: Construct,
   id: string,
-  vpcNameOrDefaultOrNull: string | "default" | undefined,
-  enableEcrEndpoints: boolean
+  vpcNameOrDefaultOrUndefined?: string,
+  enableEcrEndpoints?: boolean
 ): IVpc {
-  // if not vpc details are given then we construct a new VPC
-  if (!vpcNameOrDefaultOrNull) {
+  // if no vpc details are given then we construct a new VPC
+  if (isNil(vpcNameOrDefaultOrUndefined)) {
     const vpc = new NatVPC(scope, id);
 
     // btw https://github.com/aws/aws-cdk/issues/19332
@@ -53,14 +54,14 @@ export function smartVpcConstruct(
   }
 
   // if they ask for the special name default then we use the VPC defaulting mechanism (via CDK lookup)
-  if (vpcNameOrDefaultOrNull === "default")
+  if (vpcNameOrDefaultOrUndefined === "default")
     return ec2.Vpc.fromLookup(scope, id, {
       isDefault: true,
     });
 
   // otherwise look up the actual name given
   return ec2.Vpc.fromLookup(scope, id, {
-    vpcName: vpcNameOrDefaultOrNull,
+    vpcName: vpcNameOrDefaultOrUndefined,
   });
 }
 class NatVPC extends ec2.Vpc {

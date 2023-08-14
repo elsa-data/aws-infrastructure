@@ -2,13 +2,14 @@ import { aws_ec2 as ec2, Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { FargateService } from "aws-cdk-lib/aws-ecs";
 import {
+  CfnLoadBalancer,
   NetworkLoadBalancer,
   Protocol,
   SslPolicy,
 } from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import { ICertificate } from "aws-cdk-lib/aws-certificatemanager";
 import { ARecord, IHostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
-import { SubnetType } from "aws-cdk-lib/aws-ec2";
+import { ISecurityGroup, SecurityGroup, SubnetType } from "aws-cdk-lib/aws-ec2";
 import { LoadBalancerTarget } from "aws-cdk-lib/aws-route53-targets";
 
 export type EdgeDbLoadBalancerUiPassthroughProps = {
@@ -27,6 +28,9 @@ type Props = EdgeDbLoadBalancerUiPassthroughProps & {
 
   // the service port we will balance to
   servicePort: number;
+
+  // the security group we need to place the NLB in to access the service
+  serviceSecurityGroup: ISecurityGroup;
 };
 
 /**
@@ -46,6 +50,29 @@ export class EdgeDbLoadBalancerUiConstruct extends Construct {
       },
       internetFacing: true,
     });
+
+    const nlbSecurityGroup = new SecurityGroup(this, "LbUiSecurityGroup", {
+      vpc: props.vpc,
+      allowAllOutbound: false,
+      allowAllIpv6Outbound: false,
+      description:
+        "Security group allowing inbound internet traffic to the NLB (public SSL UI) and egress to the EdgeDb service on its port",
+    });
+    nlbSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443));
+    nlbSecurityGroup.addEgressRule(
+      props.serviceSecurityGroup,
+      ec2.Port.tcp(props.servicePort)
+    );
+
+    // NLBs now have security groups - but not in CDK yet - this is a workaround - Aug 2023
+    // review at some point and replace this with proper CDK usage
+    const cfnLb = this._lb.node.defaultChild as CfnLoadBalancer;
+    cfnLb.addPropertyOverride("SecurityGroups", [
+      // allow internet access to the SSL port of the NLB to forward on to EdgeDb
+      nlbSecurityGroup.securityGroupId,
+      // put the NLB in a group that can access EdgeDb
+      props.serviceSecurityGroup.securityGroupId,
+    ]);
 
     const tlsListener = this._lb.addListener("TlsListener", {
       // this is the port we are listening to for UI traffic

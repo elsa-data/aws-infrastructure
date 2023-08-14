@@ -2,10 +2,11 @@ import { aws_ec2 as ec2, Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { FargateService } from "aws-cdk-lib/aws-ecs";
 import {
+  CfnLoadBalancer,
   NetworkLoadBalancer,
   Protocol,
 } from "aws-cdk-lib/aws-elasticloadbalancingv2";
-import { SubnetType } from "aws-cdk-lib/aws-ec2";
+import { ISecurityGroup, SecurityGroup, SubnetType } from "aws-cdk-lib/aws-ec2";
 
 export type EdgeDbLoadBalancerProtocolPassthroughProps = {
   // the port that the load balancer will listen on for TCP pass through work - this is the normal
@@ -22,6 +23,9 @@ type Props = EdgeDbLoadBalancerProtocolPassthroughProps & {
 
   // the service port we will balance to
   servicePort: number;
+
+  // the security group we need to place the NLB in to access the service
+  serviceSecurityGroup: ISecurityGroup;
 };
 
 /**
@@ -43,6 +47,30 @@ export class EdgeDbLoadBalancerProtocolConstruct extends Construct {
       // the edgedb can only be accessed internally for protocol access
       internetFacing: false,
     });
+
+    const nlbSecurityGroup = new SecurityGroup(
+      this,
+      "LbProtocolSecurityGroup",
+      {
+        vpc: props.vpc,
+        allowAllOutbound: false,
+        allowAllIpv6Outbound: false,
+        description:
+          "Security group of the NLB (EdgeDb protocol) allowing egress to the EdgeDb service on its port",
+      }
+    );
+    nlbSecurityGroup.addEgressRule(
+      props.serviceSecurityGroup,
+      ec2.Port.tcp(props.servicePort)
+    );
+
+    // NLBs now have security groups - but not in CDK yet - this is a workaround - Aug 2023
+    // review at some point and replace this with proper CDK usage
+    const cfnLb = this._lb.node.defaultChild as CfnLoadBalancer;
+    cfnLb.addPropertyOverride("SecurityGroups", [
+      nlbSecurityGroup.securityGroupId,
+      props.serviceSecurityGroup.securityGroupId,
+    ]);
 
     // note for protocol access the NLB does not do *any* TLS handling itself
     // it just passes connection through directly

@@ -15,7 +15,7 @@ import {
   Protocol,
 } from "aws-cdk-lib/aws-ecs";
 import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
-import { ISecurityGroup, SecurityGroup } from "aws-cdk-lib/aws-ec2";
+import { ISecurityGroup, IVpc, SecurityGroup } from "aws-cdk-lib/aws-ec2";
 
 /**
  * A collection of props that are set in the highest level EdgeDb construct
@@ -151,24 +151,8 @@ export class EdgeDbServiceConstruct extends Construct {
       ],
     });
 
-    this._securityGroup = new SecurityGroup(
-      this,
-      "InternalAccessSecurityGroup",
-      {
-        vpc: props.vpc,
-        allowAllOutbound: false,
-        allowAllIpv6Outbound: false,
-        description:
-          "Security group allowing the VPC CIDR range to communicate to the EdgeDb service",
-      }
-    );
-
-    // as per https://docs.aws.amazon.com/elasticloadbalancing/latest/network/target-group-register-targets.html
-    // because we are fronting this service with an NLB - we can *only* use IP address ranges to control access
-    this._securityGroup.addIngressRule(
-      ec2.Peer.ipv4(props.vpc.vpcCidrBlock),
-      ec2.Port.tcp(this.EDGE_DB_PORT)
-    );
+    // the membership security group is a group that defines who is allowed to connect to the EdgeDb
+    this._securityGroup = this.createMembershipSecurityGroup(props.vpc);
 
     this._service = new FargateService(this, "Service", {
       // even in dev mode we never want to assign public ips to the fargate service...
@@ -183,7 +167,7 @@ export class EdgeDbServiceConstruct extends Construct {
         // that can live in public/private
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
       },
-      // in practice an EdgeDb startup went from
+      // in practice an EdgeDb startup (from logs) went (timestamps)
       // from 10:03:17
       // to   10:03:26
       // i.e. 10 seconds - so allocating 30 seconds to be safe
@@ -204,8 +188,31 @@ export class EdgeDbServiceConstruct extends Construct {
     });
   }
 
+  private createMembershipSecurityGroup(vpc: IVpc) {
+    const sg = new SecurityGroup(this, "MembershipSecurityGroup", {
+      vpc: vpc,
+      // databases don't use outbound traffic via a security group unless you are getting them to reach
+      // out via a stored procedure or something
+      allowAllOutbound: false,
+      allowAllIpv6Outbound: false,
+      description:
+        "Security group for resources that can communicate to the contained EdgeDb service",
+    });
+    // the ingress is self-referential - only allowing traffic from itself to the edge port
+    sg.addIngressRule(sg, ec2.Port.tcp(this.EDGE_DB_PORT));
+    // the egress is also self-referential - and allowing outband traffic to anyone in the same
+    // group (the all-traffic is safe because the other resources are responsible for setting their
+    // ingress rules to a set port0
+    sg.addEgressRule(sg, ec2.Port.allTraffic());
+    return sg;
+  }
+
   public get service(): FargateService {
     return this._service;
+  }
+
+  public get securityGroup(): ISecurityGroup {
+    return this._securityGroup;
   }
 
   public get servicePort(): number {

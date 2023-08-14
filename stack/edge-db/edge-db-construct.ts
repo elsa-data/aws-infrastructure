@@ -17,6 +17,7 @@ import {
   EdgeDbLoadBalancerUiConstruct,
   EdgeDbLoadBalancerUiPassthroughProps,
 } from "./edge-db-load-balancer-ui-construct";
+import { ISecurityGroup } from "aws-cdk-lib/aws-ec2";
 
 export interface EdgeDbProps {
   // a prefix that is used for constructing AWS secrets for edgedb
@@ -51,7 +52,7 @@ export interface EdgeDbProps {
 export class EdgeDbConstruct extends Construct {
   private readonly _dsn: string;
   private readonly _edgeDbPasswordSecret: ISecret;
-  // private readonly _edgeDbSecurityGroup: ISecurityGroup;
+  private readonly _edgeDbSecurityGroup: ISecurityGroup;
 
   constructor(scope: Construct, id: string, props: EdgeDbProps) {
     super(scope, id);
@@ -75,6 +76,8 @@ export class EdgeDbConstruct extends Construct {
       superUserSecret: this._edgeDbPasswordSecret,
     });
 
+    this._edgeDbSecurityGroup = edgeDbService.securityGroup;
+
     const edgeDbLoadBalancer = new EdgeDbLoadBalancerProtocolConstruct(
       this,
       "EdgeDbLoadBalancerProtocol",
@@ -82,6 +85,7 @@ export class EdgeDbConstruct extends Construct {
         vpc: props.vpc,
         service: edgeDbService.service,
         servicePort: edgeDbService.servicePort,
+        serviceSecurityGroup: edgeDbService.securityGroup,
         ...props.edgeDbLoadBalancerProtocol,
       }
     );
@@ -106,6 +110,7 @@ export class EdgeDbConstruct extends Construct {
           vpc: props.vpc,
           service: edgeDbService.service,
           servicePort: edgeDbService.servicePort,
+          serviceSecurityGroup: edgeDbService.securityGroup,
           ...props.edgeDbLoadBalancerUi,
         }
       );
@@ -126,5 +131,9 @@ export class EdgeDbConstruct extends Construct {
 
   public get passwordSecret(): ISecret {
     return this._edgeDbPasswordSecret;
+  }
+
+  public get securityGroup(): ISecurityGroup {
+    return this._edgeDbSecurityGroup;
   }
 }
