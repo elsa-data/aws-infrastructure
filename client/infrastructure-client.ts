@@ -8,6 +8,7 @@ import {
 import { Certificate, ICertificate } from "aws-cdk-lib/aws-certificatemanager";
 import {
   databaseEdgeDbSecurityGroupIdParameterName,
+  namespaceArnParameterName,
   secretsManagerSecretsPrefixParameterName,
   vpcAvailabilityZonesParameterName,
   vpcIdParameterName,
@@ -177,6 +178,31 @@ export class ElsaDataInfrastructureClient {
           Stack.of(scope).region
         }:${Stack.of(scope).account}:secret:${secretsPrefix}*`,
       ],
+    });
+  }
+
+  /**
+   * Get a policy statement that allows discovery of instances in *only* the associated
+   * namespace to this infrastructure.
+   *
+   * @param scope
+   */
+  public getCloudMapDiscoveryPolicyStatementFromLookup(
+    scope: Construct
+  ): PolicyStatement {
+    const nsArn = StringParameter.valueFromLookup(
+      scope,
+      namespaceArnParameterName(this.infrastructureStackId)
+    );
+
+    return new PolicyStatement({
+      actions: ["servicediscovery:DiscoverInstances"],
+      resources: [`*`],
+      conditions: {
+        StringEquals: {
+          "servicediscovery:NamespaceArn": nsArn,
+        },
+      },
     });
   }
 }

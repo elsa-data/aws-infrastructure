@@ -44,6 +44,18 @@ function secretsManagerSecretsPrefixParameterName(infrastructureStackId) {
   return `/${infrastructureStackId}/SecretsManager/secretsPrefix`;
 }
 
+function namespaceNameParameterName(infrastructureStackId) {
+  return `/${infrastructureStackId}/HttpNamespace/namespaceName`;
+}
+
+function namespaceIdParameterName(infrastructureStackId) {
+  return `/${infrastructureStackId}/HttpNamespace/namespaceId`;
+}
+
+function namespaceArnParameterName(infrastructureStackId) {
+  return `/${infrastructureStackId}/HttpNamespace/namespaceArn`;
+}
+
 function databaseEdgeDbDsnNoPasswordOrDatabaseParameterName(
   infrastructureStackId,
   dbName
@@ -77,6 +89,9 @@ module.exports = {
   vpcSecurityGroupIdParameterName,
   vpcInternalSecurityGroupIdParameterName,
   secretsManagerSecretsPrefixParameterName,
+  namespaceNameParameterName,
+  namespaceIdParameterName,
+  namespaceArnParameterName,
   databaseEdgeDbDsnNoPasswordOrDatabaseParameterName,
   databaseEdgeDbAdminPasswordSecretArnParameterName,
   databaseEdgeDbSecurityGroupIdParameterName,

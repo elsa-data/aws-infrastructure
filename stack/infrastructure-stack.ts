@@ -25,6 +25,9 @@ import {
   databaseEdgeDbAdminPasswordSecretArnParameterName,
   databaseEdgeDbDsnNoPasswordOrDatabaseParameterName,
   databaseEdgeDbSecurityGroupIdParameterName,
+  namespaceArnParameterName,
+  namespaceIdParameterName,
+  namespaceNameParameterName,
   secretsManagerSecretsPrefixParameterName,
   vpcAvailabilityZonesParameterName,
   vpcIdParameterName,
@@ -147,49 +150,6 @@ export class InfrastructureStack extends Stack {
       });
     }
 
-    /* EXAMINING THE USE OF MANAGED PREFIX LIST TO CONTROL ACCESS TO "DEBUG" PORTS - WIP UNUSED
-    {
-      // AS10148 University of Melbourne
-      const uniMelbCidr = [
-        "203.21.130.0/23",
-        "192.231.127.0/24",
-        "192.43.208.0/24",
-        "203.5.64.0/21",
-        "45.113.232.0/22",
-        "103.6.252.0/22",
-        "103.12.108.0/22",
-        "128.250.0.0/16",
-        "192.43.207.0/24",
-        "115.146.80.0/20",
-        "192.101.254.0/24",
-        "203.0.40.0/24",
-        "192.43.209.0/24",
-      ];
-
-      // AS7545 TPG Internet Pty Ltd
-      const tpgCidr = ["220.240.0.0/16"];
-
-      const allCidr = uniMelbCidr.concat(tpgCidr);
-
-      const developerCfnPrefixList = new CfnPrefixList(
-        this,
-        "DeveloperCfnPrefixList",
-        {
-          addressFamily: "IPv4",
-          maxEntries: allCidr.length,
-          prefixListName: `${Names.uniqueId(this)}developerManagedPrefixList`,
-          entries: allCidr.map((cidr) => ({
-            cidr,
-          })),
-        }
-      );
-
-      new StringParameter(this, "DeveloperManagedPrefixListParameter", {
-        parameterName: `/${id}/VPC/developerManagedPrefixList`,
-        stringValue: developerCfnPrefixList.attrPrefixListId,
-      });
-    } */
-
     // we export the secrets prefix so it can be used by application stacks
     // for setting a tight (yet wildcarded) policy
     new StringParameter(this, "SecretsPrefixParameter", {
@@ -297,17 +257,17 @@ export class InfrastructureStack extends Stack {
       });
 
       new StringParameter(this, "NamespaceNameParameter", {
-        parameterName: `/${id}/HttpNamespace/namespaceName`,
+        parameterName: namespaceNameParameterName(id),
         stringValue: ns.namespaceName,
       });
 
       new StringParameter(this, "NamespaceIdParameter", {
-        parameterName: `/${id}/HttpNamespace/namespaceId`,
+        parameterName: namespaceIdParameterName(id),
         stringValue: ns.namespaceId,
       });
 
       new StringParameter(this, "NamespaceArnParameter", {
-        parameterName: `/${id}/HttpNamespace/namespaceArn`,
+        parameterName: namespaceArnParameterName(id),
         stringValue: ns.namespaceArn,
       });
     }

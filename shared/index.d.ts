@@ -40,6 +40,16 @@ export function secretsManagerSecretsPrefixParameterName(
   infrastructureStackId: string
 ): string;
 
+export function namespaceNameParameterName(
+  infrastructureStackId: string
+): string;
+
+export function namespaceIdParameterName(infrastructureStackId: string): string;
+
+export function namespaceArnParameterName(
+  infrastructureStackId: string
+): string;
+
 export function databaseEdgeDbDsnNoPasswordOrDatabaseParameterName(
   infrastructureStackId: string,
   dbName: string
