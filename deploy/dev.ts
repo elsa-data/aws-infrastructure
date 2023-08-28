@@ -1,9 +1,13 @@
 import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
-import { Duration } from "aws-cdk-lib";
+import { Aspects, Duration } from "aws-cdk-lib";
 import { InfrastructureStack } from "elsa-data-aws-infrastructure";
+import { AwsSolutionsChecks, HIPAASecurityChecks } from "cdk-nag";
 
 const app = new cdk.App();
+
+Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
+Aspects.of(app).add(new HIPAASecurityChecks({ verbose: true }));
 
 // tags for our stacks
 const tags = {
