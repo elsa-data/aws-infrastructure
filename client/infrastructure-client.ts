@@ -18,7 +18,7 @@ import {
   vpcPrivateSubnetRouteTableIdsParameterName,
   vpcPublicSubnetIdsParameterName,
   vpcPublicSubnetRouteTableIdsParameterName,
-} from "elsa-data-aws-infrastructure-shared";
+} from "@elsa-data/aws-infrastructure-shared";
 import { IHostedZone } from "aws-cdk-lib/aws-route53";
 import { Construct } from "constructs";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
@@ -28,8 +28,8 @@ export interface DnsResult {
   readonly certificate: ICertificate;
 }
 
-export class ElsaDataInfrastructureClient {
-  constructor(private infrastructureStackId: string) {}
+export class InfrastructureClient {
+  constructor(protected infrastructureStackId: string) {}
 
   /**
    * Get a CDK VPC object from existing infrastructure.
@@ -161,7 +161,14 @@ export class ElsaDataInfrastructureClient {
 
   /**
    * A policy statement that we can use that gives access only to
-   * known Elsa Data secrets (by naming convention).
+   * known secrets (by naming convention) for this infrastructure.
+   *
+   * If applications create secrets according to the same prefix
+   * then they will also be included in this policy.
+   *
+   * Obviously the secrets
+   * prefix must not overlap with other stacks installed in the
+   * same account.
    *
    * @param scope
    */

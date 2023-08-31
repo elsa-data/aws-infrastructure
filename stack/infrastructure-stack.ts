@@ -39,7 +39,7 @@ import {
   vpcPublicSubnetIdsParameterName,
   vpcPublicSubnetRouteTableIdsParameterName,
   vpcSecurityGroupIdParameterName,
-} from "elsa-data-aws-infrastructure-shared";
+} from "@elsa-data/aws-infrastructure-shared";
 
 export {
   InfrastructureStackProps,

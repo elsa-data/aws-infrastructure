@@ -1,29 +1,34 @@
-# Infrastructure for Elsa Data
+# CDK Infrastructure for Elsa Data
 
-A generally usable infrastructure stack that should be
-deployed directly to an account - though the set of service it offers
-is mainly of interest to a deployment of Elsa Data (i.e it only
-offers setting up a Postgres db).
+An infrastructure stack that forms the long term basis for any
+Elsa Data application deployments. That is, this stack installs
+any long term infrastructure such as databases and certificates, that
+otherwise would cause application stack deploy/undeploy to take
+significant periods of time.
 
 ## Use
 
-The infrastructure stack name can be used in 'application' stacks
-allowing them to import from parameter store all the base level
-settings needed.
+The infrastructure stack resources can be accessed in another CDK stack
+through the use of the `@elsa-data/aws-infrastructure-client` project (and the
+infrastructure stack name) - which
+provides SSM parameters containing values from the infrastructure.
+
+For example,
+
+```typescript
+const infraClient = new ElsaDataInfrastructureClient("MyInfrastructureStack");
+
+const vpc = infraClient.getVpcFromLookup(this);
+
+const namespace = infraClient.getNamespaceFromLookup(this);
+```
 
 ## Included
 
 Infrastructure includes
 
-- an optional VPC (or re-use an existing one)
-- a RDS postgres instance
+- an optional VPC (or the ability to re-use an existing VPC by name)
+- RDS Postgres (instance or serverless)
 - a S3 bucket for temp objects
 - a SSL wildcard certificate with connected DNS zone (re-using an existing one)
-
-## Deployment
-
-This repo currently has settings for manual deployment to
-
-- UMCCR dev `npx cdk deploy ElsaDataAustralianGenomicsInfrastructureStack`
-- Australian Genomics Demo `npx cdk deploy ElsaDataDemoAustralianGenomicsInfrastructureStack`
-- Australian Genomics `npx cdk deploy ElsaDataAustralianGenomicsInfrastructureStack`
+- an EdgeDb instance on top of Postgres

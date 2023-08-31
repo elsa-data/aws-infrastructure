@@ -1,5 +1,5 @@
 {
-  "name": "@umccr/elsa-data-aws-infrastructure-dev",
+  "name": "dev",
   "version": "0.0.0",
   "private": true,
   "description": "Deployment for dev purposes of the infrastructure stack - not for publishing",
@@ -8,20 +8,15 @@
     "organization": true
   },
   "license": "MIT",
-  "scripts": {
-    "deploy": "cdk deploy",
-    "destroy": "cdk destroy",
-    "doctor": "cdk doctor"
-  },
   "dependencies": {
-    "cdk-nag": "^2.27.100",
+    "cdk-nag": "2.27.117",
     "elsa-data-aws-infrastructure": "file:../stack"
   },
   "devDependencies": {
-    "aws-cdk": "2.80.0",
-    "aws-cdk-lib": "2.80.0",
-    "constructs": "10.2.0",
-    "prettier": "3.0.1",
-    "typescript": "5.1.6"
+    "aws-cdk": "2.93.0",
+    "aws-cdk-lib": "2.93.0",
+    "constructs": "10.2.70",
+    "prettier": "3.0.3",
+    "typescript": "5.2.2"
   }
 }

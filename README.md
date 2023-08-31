@@ -1,29 +1,18 @@
-# Infrastructure for Elsa Data
+# Elsa Data AWS Infrastructure
 
-A generally usable infrastructure stack that should be
-deployed directly to an account - though the set of service it offers
-is mainly of interest to a deployment of Elsa Data (i.e it only
-offers setting up a Postgres db).
+An infrastructure stack for Elsa Data - published as a pair of
+`npm` packages - one for establishing the infrastructure, and the
+other as a client CDK stack to lookup values via parameter store
+lookup. See [README](stack/README.md) for details.
 
-## Use
+## Create a Release
 
-The infrastructure stack name can be used in 'application' stacks
-allowing them to import from parameter store all the base level
-settings needed.
+Create a tagged release in Github in order to publish the
+pair of packages to `npmjs`. Use semantic versioning.
 
-## Included
+## Development
 
-Infrastructure includes
-
-- an optional VPC (or re-use an existing one)
-- a RDS postgres instance
-- a S3 bucket for temp objects
-- a SSL wildcard certificate with connected DNS zone (re-using an existing one)
-
-## Deployment
-
-This repo currently has settings for manual deployment to
-
-- UMCCR dev `npx cdk deploy ElsaDataAustralianGenomicsInfrastructureStack`
-- Australian Genomics Demo `npx cdk deploy ElsaDataDemoAustralianGenomicsInfrastructureStack`
-- Australian Genomics `npx cdk deploy ElsaDataAustralianGenomicsInfrastructureStack`
+The infrastructure CDK can be developed by deploying the stack
+from the `dev` folder. Note that the included package will use
+the package `*.js` files - so the stack MUST be
+compiled (`jsii`) before deployment (in both `client` and `stack`).

@@ -1,5 +1,5 @@
 {
-  "name": "@umccr/elsa-data-aws-infrastructure-client",
+  "name": "@elsa-data/aws-infrastructure-client",
   "version": "0.0.0",
   "description": "A library for clients wanting to use the Elsa Data infrastructure stack",
   "author": {
@@ -8,15 +8,16 @@
   },
   "main": "infrastructure-client.js",
   "types": "infrastructure-client.d.ts",
+  "homepage": "https://github.com/elsa-data",
   "repository": {
     "type": "git",
-    "url": "https://github.com/umccr/elsa-data-aws-infrastructure/client"
+    "url": "https://github.com/elsa-data/elsa-data-aws-infrastructure/client"
   },
   "license": "MIT",
   "scripts": {
-    "build-client": "jsii -vvv",
+    "build-client": "jsii -v",
     "build-client:watch": "jsii -w",
-    "package-client": "jsii-pacmak -vvv"
+    "package-client": "jsii-pacmak -v"
   },
   "keywords": [
     "jsii",
@@ -28,22 +29,22 @@
     "targets": {}
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.50.0",
-    "constructs": "^10.2.0"
+    "aws-cdk-lib": "^2.93.0",
+    "constructs": "^10.2.70"
   },
   "dependencies": {
-    "elsa-data-aws-infrastructure-shared": "file:../shared"
+    "@elsa-data/aws-infrastructure-shared": "file:../shared"
   },
   "bundledDependencies": [
-    "elsa-data-aws-infrastructure-shared"
+    "@elsa-data/aws-infrastructure-shared"
   ],
   "devDependencies": {
-    "aws-cdk-lib": "2.50.0",
-    "constructs": "10.2.0",
-    "jsii": "5.1.10",
-    "jsii-pacmak": "1.86.1",
-    "prettier": "3.0.1",
+    "aws-cdk-lib": "2.93.0",
+    "constructs": "10.2.70",
+    "jsii": "5.1.12",
+    "jsii-pacmak": "1.88.0",
+    "prettier": "3.0.3",
     "publib": "0.2.737",
-    "typescript": "5.1.6"
+    "typescript": "5.2.2"
   }
 }

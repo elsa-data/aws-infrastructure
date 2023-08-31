@@ -1,24 +1,26 @@
 {
-  "name": "@umccr/elsa-data-aws-infrastructure",
+  "name": "@elsa-data/aws-infrastructure",
   "version": "0.0.0",
-  "description": "A CDK stack that deploys well configured infrastructure for use by Elsa Data",
+  "description": "A CDK stack that deploys well-configured infrastructure for use by Elsa Data",
   "author": {
     "name": "University of Melbourne Centre for Cancer Research",
     "organization": true
   },
   "main": "infrastructure-stack.js",
   "types": "infrastructure-stack.d.ts",
+  "homepage": "https://github.com/elsa-data",
   "repository": {
     "type": "git",
-    "url": "https://github.com/umccr/elsa-data-aws-infrastructure/stack"
+    "url": "https://github.com/elsa-data/elsa-data-aws-infrastructure/stack"
   },
   "license": "MIT",
   "scripts": {
-    "build": "jsii -vvv",
+    "build": "jsii -v",
     "build:watch": "jsii -w",
-    "package": "jsii-pacmak -vvv"
+    "package": "jsii-pacmak -v"
   },
   "keywords": [
+    "elsa-data",
     "jsii",
     "cdk"
   ],
@@ -27,26 +29,26 @@
     "targets": {}
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.80.0",
-    "constructs": "^10.2.0"
+    "aws-cdk-lib": "^2.93.0",
+    "constructs": "^10.2.70"
   },
   "dependencies": {
     "lodash": "4.17.21",
-    "elsa-data-aws-infrastructure-shared": "file:../shared"
+    "@elsa-data/aws-infrastructure-shared": "file:../shared"
   },
   "bundledDependencies": [
     "lodash",
-    "elsa-data-aws-infrastructure-shared"
+    "@elsa-data/aws-infrastructure-shared"
   ],
   "devDependencies": {
     "@types/lodash": "4.14.197",
-    "aws-cdk": "2.80.0",
-    "aws-cdk-lib": "2.80.0",
-    "constructs": "10.2.0",
-    "jsii": "5.1.10",
-    "jsii-pacmak": "1.86.1",
-    "prettier": "3.0.1",
+    "aws-cdk": "2.93.0",
+    "aws-cdk-lib": "2.93.0",
+    "constructs": "10.2.70",
+    "jsii": "5.1.12",
+    "jsii-pacmak": "1.88.0",
+    "prettier": "3.0.3",
     "publib": "0.2.737",
-    "typescript": "5.1.6"
+    "typescript": "5.2.2"
   }
 }
