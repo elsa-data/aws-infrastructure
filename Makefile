@@ -13,3 +13,6 @@ clean:
 	(cd shared; rm -rf .jsii tsconfig.json tsconfig.tsbuildinfo dist)
 	(cd stack; rm -rf .jsii tsconfig.json tsconfig.tsbuildinfo dist)
 	(cd client; rm -rf .jsii tsconfig.json tsconfig.tsbuildinfo dist)
+
+nuke:
+	(cd dev; rm -rf cdk.out)

@@ -6,6 +6,9 @@ import {
   IHttpNamespace,
 } from "aws-cdk-lib/aws-servicediscovery";
 import { Certificate, ICertificate } from "aws-cdk-lib/aws-certificatemanager";
+import { IHostedZone } from "aws-cdk-lib/aws-route53";
+import { Construct } from "constructs";
+import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import {
   databaseEdgeDbSecurityGroupIdParameterName,
   namespaceArnParameterName,
@@ -18,10 +21,7 @@ import {
   vpcPrivateSubnetRouteTableIdsParameterName,
   vpcPublicSubnetIdsParameterName,
   vpcPublicSubnetRouteTableIdsParameterName,
-} from "@elsa-data/aws-infrastructure-shared";
-import { IHostedZone } from "aws-cdk-lib/aws-route53";
-import { Construct } from "constructs";
-import { PolicyStatement } from "aws-cdk-lib/aws-iam";
+} from "shared";
 
 export interface DnsResult {
   readonly hostedZone: IHostedZone;

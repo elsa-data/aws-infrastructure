@@ -1,0 +1,5 @@
+packages:
+  - client
+  - dev
+  - stack
+  - packages/shared

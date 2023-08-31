@@ -15,9 +15,9 @@
   },
   "license": "MIT",
   "scripts": {
-    "build-client": "jsii -v",
-    "build-client:watch": "jsii -w",
-    "package-client": "jsii-pacmak -v"
+    "build": "jsii -v",
+    "build:watch": "jsii -w",
+    "package": "jsii-pacmak -v"
   },
   "keywords": [
     "jsii",
@@ -33,10 +33,10 @@
     "constructs": "^10.2.70"
   },
   "dependencies": {
-    "@elsa-data/aws-infrastructure-shared": "file:../shared"
+    "shared": "link:../packages/shared"
   },
   "bundledDependencies": [
-    "@elsa-data/aws-infrastructure-shared"
+    "shared"
   ],
   "devDependencies": {
     "aws-cdk-lib": "2.93.0",
