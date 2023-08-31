@@ -17,7 +17,6 @@ import { InfrastructureStackProps } from "./infrastructure-stack-props";
 import { StringListParameter, StringParameter } from "aws-cdk-lib/aws-ssm";
 import { HttpNamespace } from "aws-cdk-lib/aws-servicediscovery";
 import { Port, SecurityGroup } from "aws-cdk-lib/aws-ec2";
-import { camelCase } from "lodash";
 import { BaseDatabase } from "./rds/base-database";
 import { ServerlessBaseDatabase } from "./rds/serverless-base-database";
 import { EdgeDbConstruct } from "./edge-db/edge-db-construct";
@@ -40,6 +39,7 @@ import {
   vpcPublicSubnetRouteTableIdsParameterName,
   vpcSecurityGroupIdParameterName,
 } from "shared";
+import camelCase from "just-camel-case";
 
 export {
   InfrastructureStackProps,

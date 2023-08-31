@@ -8,9 +8,12 @@
     "organization": true
   },
   "license": "MIT",
+  "scripts": {
+    "clean": "git clean -fXd"
+  },
   "dependencies": {
     "cdk-nag": "2.27.117",
-    "elsa-data-aws-infrastructure": "file:../stack"
+    "elsa-data-aws-infrastructure": "file:../packages/stack"
   },
   "devDependencies": {
     "aws-cdk": "2.93.0",
