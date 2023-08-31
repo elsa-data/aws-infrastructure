@@ -3,7 +3,7 @@
 An infrastructure stack for Elsa Data - published as a pair of
 `npm` packages - one for establishing the infrastructure, and the
 other as a client CDK stack to lookup values via parameter store
-lookup. See [README](stack/README.md) for details.
+lookup. See [README](packages/stack/README.md) for details.
 
 ## Create a Release
 

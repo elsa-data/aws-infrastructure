@@ -5,8 +5,9 @@
   "private": true,
   "packageManager": "pnpm@8.7.0",
   "scripts": {
-    "build": "pnpm --stream --filter \"@elsa-data/*\" run build",
-    "package": "pnpm --stream --filter \"@elsa-data/*\" run package"
+    "build": "pnpm --stream --filter \"./packages/**\" run build",
+    "package": "pnpm --stream --filter \"./packages/**\" run package",
+    "clean": "git clean -fXd"
   },
   "keywords": [],
   "author": {

@@ -6,7 +6,11 @@ import {
   IVpc,
   SubnetType,
 } from "aws-cdk-lib/aws-ec2";
-import { isNil } from "lodash";
+
+// matching lodash isNil - but without importing all of lodash
+function isNil(value: any) {
+  return value == null;
+}
 
 /**
  * The smart VPC construct allows us to either inherit an existing VPC, or create a new VPC

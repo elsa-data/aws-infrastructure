@@ -1,28 +1,29 @@
 {
-  "name": "@elsa-data/aws-infrastructure-client",
+  "name": "@elsa-data/aws-infrastructure",
   "version": "0.0.0",
-  "description": "A library for clients wanting to use the Elsa Data infrastructure stack",
+  "description": "A CDK stack that deploys well-configured infrastructure for use by Elsa Data",
   "author": {
     "name": "University of Melbourne Centre for Cancer Research",
     "organization": true
   },
-  "main": "infrastructure-client.js",
-  "types": "infrastructure-client.d.ts",
+  "main": "infrastructure-stack.js",
+  "types": "infrastructure-stack.d.ts",
   "homepage": "https://github.com/elsa-data",
   "repository": {
     "type": "git",
-    "url": "https://github.com/elsa-data/elsa-data-aws-infrastructure/client"
+    "url": "https://github.com/elsa-data/elsa-data-aws-infrastructure/stack"
   },
   "license": "MIT",
   "scripts": {
     "build": "jsii -v",
     "build:watch": "jsii -w",
-    "package": "jsii-pacmak -v"
+    "package": "jsii-pacmak -v",
+    "clean": "git clean -fXd"
   },
   "keywords": [
+    "elsa-data",
     "jsii",
-    "cdk",
-    "elsa-data"
+    "cdk"
   ],
   "jsii": {
     "outdir": "dist",
@@ -33,12 +34,15 @@
     "constructs": "^10.2.70"
   },
   "dependencies": {
-    "shared": "link:../packages/shared"
+    "just-camel-case": "6.2.0",
+    "shared": "link:../shared"
   },
   "bundledDependencies": [
+    "just-camel-case",
     "shared"
   ],
   "devDependencies": {
+    "aws-cdk": "2.93.0",
     "aws-cdk-lib": "2.93.0",
     "constructs": "10.2.70",
     "jsii": "5.1.12",
