@@ -9,7 +9,7 @@ importers:
 
   client:
     dependencies:
-      "@elsa-data/aws-infrastructure-shared":
+      shared:
         specifier: link:../packages/shared
         version: link:../packages/shared
     devDependencies:
@@ -41,8 +41,8 @@ importers:
         specifier: 2.27.117
         version: 2.27.117(aws-cdk-lib@2.93.0)(constructs@10.2.70)
       elsa-data-aws-infrastructure:
-        specifier: file:../stack
-        version: file:stack(aws-cdk-lib@2.93.0)(constructs@10.2.70)
+        specifier: workspace:../stack
+        version: link:../stack
     devDependencies:
       aws-cdk:
         specifier: 2.93.0
@@ -64,12 +64,12 @@ importers:
 
   stack:
     dependencies:
-      "@elsa-data/aws-infrastructure-shared":
-        specifier: link:../packages/shared
-        version: link:../packages/shared
       lodash:
         specifier: 4.17.21
         version: 4.17.21
+      shared:
+        specifier: link:../packages/shared
+        version: link:../packages/shared
     devDependencies:
       "@types/lodash":
         specifier: 4.14.197
@@ -2656,20 +2656,3 @@ packages:
       y18n: 5.0.8
       yargs-parser: 21.1.1
     dev: true
-
-  file:stack(aws-cdk-lib@2.93.0)(constructs@10.2.70):
-    resolution: { directory: stack, type: directory }
-    id: file:stack
-    name: "@elsa-data/aws-infrastructure"
-    peerDependencies:
-      aws-cdk-lib: ^2.93.0
-      constructs: ^10.2.70
-    dependencies:
-      "@elsa-data/aws-infrastructure-shared": link:../packages/shared
-      aws-cdk-lib: 2.93.0(constructs@10.2.70)
-      constructs: 10.2.70
-      lodash: 4.17.21
-    dev: false
-    bundledDependencies:
-      - lodash
-      - "@elsa-data/aws-infrastructure-shared"

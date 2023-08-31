@@ -34,11 +34,11 @@
   },
   "dependencies": {
     "lodash": "4.17.21",
-    "@elsa-data/aws-infrastructure-shared": "link:../packages/shared"
+    "shared": "link:../packages/shared"
   },
   "bundledDependencies": [
     "lodash",
-    "@elsa-data/aws-infrastructure-shared"
+    "shared"
   ],
   "devDependencies": {
     "@types/lodash": "4.14.197",

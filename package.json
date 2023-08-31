@@ -1,13 +1,17 @@
 {
   "name": "elsa-data-aws-infrastructure",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.0.0",
+  "description": "The root package of a mono repo for Elsa Data AWS infrastructure",
+  "private": true,
   "packageManager": "pnpm@8.7.0",
   "scripts": {
     "build": "pnpm --stream --filter \"@elsa-data/*\" run build",
-    "package": "pnpm --stream --filter \"@elsa-data/*\"  run package"
+    "package": "pnpm --stream --filter \"@elsa-data/*\" run package"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "author": {
+    "name": "University of Melbourne Centre for Cancer Research",
+    "organization": true
+  },
+  "license": "MIT"
 }
