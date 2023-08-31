@@ -10,47 +10,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          cache: "npm"
-          cache-dependency-path: shared/package-lock.json
+      - uses: pnpm/action-setup@v2
 
       - uses: actions/setup-node@v3
         with:
           node-version: 18
-          cache: "npm"
-          cache-dependency-path: client/package-lock.json
+          cache: "pnpm"
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          cache: "npm"
-          cache-dependency-path: stack/package-lock.json
+      - run: pnpm install
 
-      # the shared project is just some simple constants in JS that are shared
-      # they are not installed or published, but we install their packages if needed
-      - run: npm ci
-        working-directory: shared
+      - run: pnpm run build
 
-      # build the client as a JSII package
-
-      - run: npm ci
-        working-directory: client
-
-      - run: npm run build-client
-        working-directory: client
-
-      - run: npm run package-client
-        working-directory: client
-
-      # build the stack as a JSII package
-
-      - run: npm ci
-        working-directory: stack
-
-      - run: npm run build
-        working-directory: stack
-
-      - run: npm run package
-        working-directory: stack
+      - run: pnpm run package
