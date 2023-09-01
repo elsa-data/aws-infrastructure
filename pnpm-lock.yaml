@@ -64,9 +64,6 @@ importers:
 
   packages/stack:
     dependencies:
-      just-camel-case:
-        specifier: 6.2.0
-        version: 6.2.0
       shared:
         specifier: link:../shared
         version: link:../shared
@@ -1983,13 +1980,6 @@ packages:
       {
         integrity: sha512-S6cATIPVv1z0IlxdN+zUk5EPjkGCdnhN4wVSBlvoUO1tOLJootbo9CquNJmbIh4yikWHiUedhRYrNPn1arpEmQ==,
       }
-
-  /just-camel-case@6.2.0:
-    resolution:
-      {
-        integrity: sha512-ICenRLXwkQYLk3UyvLQZ+uKuwFVJ3JHFYFn7F2782G2Mv2hW8WPePqgdhpnjGaqkYtSVWnyCESZhGXUmY3/bEg==,
-      }
-    dev: false
 
   /lodash.truncate@4.4.2:
     resolution:
