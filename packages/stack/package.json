@@ -34,11 +34,9 @@
     "constructs": "^10.2.70"
   },
   "dependencies": {
-    "just-camel-case": "6.2.0",
     "shared": "link:../shared"
   },
   "bundledDependencies": [
-    "just-camel-case",
     "shared"
   ],
   "devDependencies": {

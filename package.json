@@ -6,6 +6,7 @@
   "packageManager": "pnpm@8.7.0",
   "scripts": {
     "build": "pnpm --stream --filter \"./packages/**\" run build",
+    "watch": "pnpm --stream --filter \"./packages/**\" run build:watch",
     "package": "pnpm --stream --filter \"./packages/**\" run package",
     "clean": "git clean -fXd"
   },

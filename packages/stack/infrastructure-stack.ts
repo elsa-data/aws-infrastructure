@@ -39,7 +39,7 @@ import {
   vpcPublicSubnetRouteTableIdsParameterName,
   vpcSecurityGroupIdParameterName,
 } from "shared";
-import camelCase from "just-camel-case";
+import { camelCase } from "./justCamelCase";
 
 export {
   InfrastructureStackProps,

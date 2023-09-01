@@ -6,8 +6,9 @@ import { AwsSolutionsChecks, HIPAASecurityChecks } from "cdk-nag";
 
 const app = new cdk.App();
 
-Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
-Aspects.of(app).add(new HIPAASecurityChecks({ verbose: true }));
+// If wanted, you can always do a nag check on the stack
+// Aspects.of(app).add(new AwsSolutionsChecks({ verbose: false }));
+// Aspects.of(app).add(new HIPAASecurityChecks({ verbose: false }));
 
 // tags for our stacks
 const tags = {

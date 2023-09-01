@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "cdk-nag": "2.27.117",
-    "elsa-data-aws-infrastructure": "file:../packages/stack"
+    "elsa-data-aws-infrastructure": "link:../packages/stack"
   },
   "devDependencies": {
     "aws-cdk": "2.93.0",
