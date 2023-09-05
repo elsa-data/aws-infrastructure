@@ -1,4 +1,4 @@
-import { aws_route53 as route53, Stack } from "aws-cdk-lib";
+import { ArnComponents, aws_route53 as route53, Stack } from "aws-cdk-lib";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
 import { IVpc, SecurityGroup, Vpc } from "aws-cdk-lib/aws-ec2";
 import {
@@ -22,6 +22,8 @@ import {
   vpcPublicSubnetIdsParameterName,
   vpcPublicSubnetRouteTableIdsParameterName,
 } from "shared";
+import { ISecret, Secret } from "aws-cdk-lib/aws-secretsmanager";
+import { Bucket, IBucket } from "aws-cdk-lib/aws-s3";
 
 export interface DnsResult {
   readonly hostedZone: IHostedZone;
@@ -30,6 +32,37 @@ export interface DnsResult {
 
 export class InfrastructureClient {
   constructor(protected infrastructureStackId: string) {}
+
+  /**
+   * Workaround for a problem with CDK that on initial pass the values of a valueFromLookup
+   * are not valid ARNS - which then causes other code to fail - even though eventually the
+   * value *will* be a real ARN.
+   *
+   * See https://github.com/josephedward/aws-cdk/commit/33030e0c2bb46fa909540bff6ae0153d48abc9c2
+   *
+   * @param scope
+   * @param parameterName
+   * @param dummyComponents
+   */
+  private delayedArnLookupHelper(
+    scope: Construct,
+    parameterName: string,
+    dummyComponents: ArnComponents
+  ): string {
+    // attempt to get the value from CDK - this might be a dummy value however
+    const lookupValue = StringParameter.valueFromLookup(scope, parameterName);
+
+    let returnLookupValue: string;
+    if (lookupValue.includes("dummy-value")) {
+      // if dummy value - need to return a plausible ARN
+      returnLookupValue = Stack.of(scope).formatArn(dummyComponents);
+    } else {
+      // else eventually return the real value
+      returnLookupValue = lookupValue;
+    }
+
+    return returnLookupValue;
+  }
 
   /**
    * Get a CDK VPC object from existing infrastructure.
@@ -131,15 +164,32 @@ export class InfrastructureClient {
   }
 
   /**
-   * Return a security group that membership of will give access to the given
-   * named EdgeDb.
+   * Return a DSN for the given EdgeDb instance - the
+   * DSN will *not* include the password OR the database name.
    *
    * @param scope
-   * @param databaseName
+   * @param databaseInstanceName
+   */
+  public getEdgeDbDsnNoPasswordOrDatabaseFromLookup(
+    scope: Construct,
+    databaseInstanceName: string
+  ) {
+    return StringParameter.valueFromLookup(
+      scope,
+      `/${this.infrastructureStackId}/Database/${databaseInstanceName}/EdgeDb/dsnNoPasswordOrDatabase`
+    );
+  }
+
+  /**
+   * Return a security group that membership of will give access to the given
+   * named EdgeDb instance.
+   *
+   * @param scope
+   * @param databaseInstanceName
    */
   public getEdgeDbSecurityGroupFromLookup(
     scope: Construct,
-    databaseName: string
+    databaseInstanceName: string
   ) {
     return SecurityGroup.fromSecurityGroupId(
       scope,
@@ -148,7 +198,7 @@ export class InfrastructureClient {
         scope,
         databaseEdgeDbSecurityGroupIdParameterName(
           this.infrastructureStackId,
-          databaseName
+          databaseInstanceName
         )
       ),
       {
@@ -156,6 +206,52 @@ export class InfrastructureClient {
         // should not ever edit the ingress/egress rules
         mutable: false,
       }
+    );
+  }
+
+  /**
+   * Return a secret that contains the administrator password for the given
+   * EdgeDb instance.
+   *
+   * @param scope
+   * @param databaseInstanceName
+   */
+  public getEdgeDbAdminPasswordSecretFromLookup(
+    scope: Construct,
+    databaseInstanceName: string
+  ): ISecret {
+    return Secret.fromSecretCompleteArn(
+      scope,
+      "EdgeDbAdminSecret",
+      this.delayedArnLookupHelper(
+        scope,
+        `/${this.infrastructureStackId}/Database/${databaseInstanceName}/EdgeDb/adminPasswordSecretArn`,
+        {
+          service: "secretsmanager",
+          resource: "secret",
+          resourceName: "adminPasswordSecretThoughThisIsNotReal",
+        }
+      )
+    );
+  }
+
+  /**
+   * Return the temporary bucket.
+   *
+   * @param scope
+   */
+  public getTempBucketFromLookup(scope: Construct): IBucket {
+    return Bucket.fromBucketArn(
+      scope,
+      "TempBucket",
+      this.delayedArnLookupHelper(
+        scope,
+        `/${this.infrastructureStackId}/TempPrivateBucket/bucketArn`,
+        {
+          service: "s3",
+          resource: "a-bucket-name-though-this-is-not-real",
+        }
+      )
     );
   }
 
