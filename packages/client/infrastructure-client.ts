@@ -256,6 +256,20 @@ export class InfrastructureClient {
   }
 
   /**
+   * A prefix that should be prepended to all secret names. We can then
+   * access secrets across all applications using a wildcard secret
+   * policy.
+   *
+   * @param scope
+   */
+  public getSecretsPrefixFromLookup(scope: Construct): string {
+    return StringParameter.valueFromLookup(
+      scope,
+      secretsManagerSecretsPrefixParameterName(this.infrastructureStackId)
+    );
+  }
+
+  /**
    * A policy statement that we can use that gives access only to
    * known secrets (by naming convention) for this infrastructure.
    *
