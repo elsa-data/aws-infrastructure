@@ -56,7 +56,7 @@ export class InstanceBaseDatabase extends BaseDatabase {
       vpcSubnets: {
         subnetType: props.makePubliclyReachable
           ? ec2.SubnetType.PUBLIC
-          : ec2.SubnetType.PRIVATE_ISOLATED,
+          : ec2.SubnetType.PRIVATE_WITH_EGRESS,
       },
       credentials: rds.Credentials.fromSecret(props.secret),
       // our props "destroy on remove" tells us we don't really care much about the data (demo instances etc)

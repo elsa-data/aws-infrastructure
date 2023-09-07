@@ -41,7 +41,7 @@ export class ServerlessBaseDatabase extends BaseDatabase {
       vpcSubnets: {
         subnetType: props.makePubliclyReachable
           ? ec2.SubnetType.PUBLIC
-          : ec2.SubnetType.PRIVATE_ISOLATED,
+          : ec2.SubnetType.PRIVATE_WITH_EGRESS,
       },
       engine: rds.DatabaseClusterEngine.auroraPostgres({
         version: rds.AuroraPostgresEngineVersion.VER_14_7,
