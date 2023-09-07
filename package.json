@@ -15,5 +15,9 @@
     "name": "University of Melbourne Centre for Cancer Research",
     "organization": true
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "prettier": "3.0.3",
+    "typescript": "5.2.2"
+  }
 }

@@ -5,7 +5,14 @@ settings:
   excludeLinksFromLockfile: false
 
 importers:
-  .: {}
+  .:
+    devDependencies:
+      prettier:
+        specifier: 3.0.3
+        version: 3.0.3
+      typescript:
+        specifier: 5.2.2
+        version: 5.2.2
 
   dev:
     dependencies:
@@ -25,18 +32,12 @@ importers:
       constructs:
         specifier: 10.2.70
         version: 10.2.70
-      prettier:
-        specifier: 3.0.3
-        version: 3.0.3
-      typescript:
-        specifier: 5.2.2
-        version: 5.2.2
 
   packages/client:
     dependencies:
       shared:
-        specifier: link:../shared
-        version: link:../shared
+        specifier: file:../shared
+        version: file:packages/shared
     devDependencies:
       aws-cdk-lib:
         specifier: 2.93.0
@@ -50,23 +51,17 @@ importers:
       jsii-pacmak:
         specifier: 1.88.0
         version: 1.88.0
-      prettier:
-        specifier: 3.0.3
-        version: 3.0.3
       publib:
         specifier: 0.2.737
         version: 0.2.737
-      typescript:
-        specifier: 5.2.2
-        version: 5.2.2
 
   packages/shared: {}
 
   packages/stack:
     dependencies:
       shared:
-        specifier: link:../shared
-        version: link:../shared
+        specifier: file:../shared
+        version: file:packages/shared
     devDependencies:
       aws-cdk:
         specifier: 2.93.0
@@ -83,15 +78,9 @@ importers:
       jsii-pacmak:
         specifier: 1.88.0
         version: 1.88.0
-      prettier:
-        specifier: 3.0.3
-        version: 3.0.3
       publib:
         specifier: 0.2.737
         version: 0.2.737
-      typescript:
-        specifier: 5.2.2
-        version: 5.2.2
 
 packages:
   /@aws-cdk/asset-awscli-v1@2.2.200:
@@ -1537,7 +1526,7 @@ packages:
     dependencies:
       semver: 7.5.4
       shelljs: 0.8.5
-      typescript: 5.3.0-dev.20230831
+      typescript: 5.3.0-dev.20230906
     dev: true
 
   /emoji-regex@8.0.0:
@@ -2494,10 +2483,10 @@ packages:
     hasBin: true
     dev: true
 
-  /typescript@5.3.0-dev.20230831:
+  /typescript@5.3.0-dev.20230906:
     resolution:
       {
-        integrity: sha512-rF6KQ0q/AuevKbtHjFEZ7dXRGv0t6bIcmo2K1ypmwZmnqwcxcvDfHxBjQM0u3v//5rpHiqasPTC8nB7SMEwvOA==,
+        integrity: sha512-7dCmQgfQ4i38daoPCCert+rM6gLxBpxRdjncJkHkJV4CWvNZsRX+RVTusojkqGAtW9vqB0+/8iDH6CZ0PDxghg==,
       }
     engines: { node: ">=14.17" }
     hasBin: true
@@ -2636,3 +2625,8 @@ packages:
       y18n: 5.0.8
       yargs-parser: 21.1.1
     dev: true
+
+  file:packages/shared:
+    resolution: { directory: packages/shared, type: directory }
+    name: shared
+    dev: false
