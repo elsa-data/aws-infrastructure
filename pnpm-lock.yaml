@@ -22,6 +22,9 @@ importers:
       elsa-data-aws-infrastructure:
         specifier: link:../packages/stack
         version: link:../packages/stack
+      elsa-data-aws-infrastructure-client:
+        specifier: link:../packages/client
+        version: link:../packages/client
     devDependencies:
       aws-cdk:
         specifier: 2.93.0
@@ -1526,7 +1529,7 @@ packages:
     dependencies:
       semver: 7.5.4
       shelljs: 0.8.5
-      typescript: 5.3.0-dev.20230906
+      typescript: 5.3.0-dev.20230907
     dev: true
 
   /emoji-regex@8.0.0:
@@ -2483,10 +2486,10 @@ packages:
     hasBin: true
     dev: true
 
-  /typescript@5.3.0-dev.20230906:
+  /typescript@5.3.0-dev.20230907:
     resolution:
       {
-        integrity: sha512-7dCmQgfQ4i38daoPCCert+rM6gLxBpxRdjncJkHkJV4CWvNZsRX+RVTusojkqGAtW9vqB0+/8iDH6CZ0PDxghg==,
+        integrity: sha512-8yegC0GyY5ug9184BxLq8fLDt08+g8jRfut0QSraLFoT13c39Z6fVoviDEeqJgbnIGVxzAEiNQLUslpKYCyUsg==,
       }
     engines: { node: ">=14.17" }
     hasBin: true

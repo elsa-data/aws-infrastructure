@@ -75,7 +75,11 @@ export class InfrastructureClient {
    */
   public getVpcFromLookup(scope: Construct): IVpc {
     const getStringListLookup = (parameterName: string) => {
-      return StringParameter.valueFromLookup(scope, parameterName).split(",");
+      const val = StringParameter.valueFromLookup(scope, parameterName);
+
+      if (val && val.length > 0) return val.split(",");
+
+      return undefined;
     };
 
     const vpcAttrs: Mutable<VpcAttributes> = {
@@ -85,7 +89,7 @@ export class InfrastructureClient {
       ),
       availabilityZones: getStringListLookup(
         vpcAvailabilityZonesParameterName(this.infrastructureStackId)
-      ),
+      )!,
       publicSubnetIds: getStringListLookup(
         vpcPublicSubnetIdsParameterName(this.infrastructureStackId)
       ),
@@ -106,13 +110,28 @@ export class InfrastructureClient {
 
     // try to bring in the isolated subnets if present
     try {
-      vpcAttrs.isolatedSubnetIds = getStringListLookup(
+      vpcAttrs.isolatedSubnetIds = undefined;
+      vpcAttrs.isolatedSubnetRouteTableIds = undefined;
+
+      const isolatedSubs = getStringListLookup(
         vpcIsolatedSubnetIdsParameterName(this.infrastructureStackId)
       );
 
-      vpcAttrs.isolatedSubnetRouteTableIds = getStringListLookup(
-        vpcIsolatedSubnetRouteTableIdsParameterName(this.infrastructureStackId)
-      );
+      // sometimes even if the isolated subnets parameter does not exist - what comes back is a string
+      // error message - hence our test here to really really establish we have real subnets
+      if (
+        isolatedSubs &&
+        isolatedSubs.length > 0 &&
+        isolatedSubs[0].includes("subnet-")
+      ) {
+        vpcAttrs.isolatedSubnetIds = isolatedSubs;
+
+        vpcAttrs.isolatedSubnetRouteTableIds = getStringListLookup(
+          vpcIsolatedSubnetRouteTableIdsParameterName(
+            this.infrastructureStackId
+          )
+        );
+      }
     } catch (e) {}
 
     // actually make the VPC object

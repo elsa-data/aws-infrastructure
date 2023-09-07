@@ -9,11 +9,14 @@
   },
   "license": "MIT",
   "scripts": {
+    "client-test-deploy": "cdk -a \"npx ts-node --prefer-ts-exts client-test.ts\" deploy",
+    "client-test-destroy": "cdk -a \"npx ts-node --prefer-ts-exts client-test.ts\" destroy",
     "clean": "git clean -fXd"
   },
   "dependencies": {
     "cdk-nag": "2.27.117",
-    "elsa-data-aws-infrastructure": "link:../packages/stack"
+    "elsa-data-aws-infrastructure": "link:../packages/stack",
+    "elsa-data-aws-infrastructure-client": "link:../packages/client"
   },
   "devDependencies": {
     "aws-cdk": "2.93.0",
