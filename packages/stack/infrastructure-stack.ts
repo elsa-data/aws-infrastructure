@@ -98,27 +98,33 @@ export class InfrastructureStack extends Stack {
       stringListValue: vpc.publicSubnets.map((a) => a.routeTable.routeTableId),
     });
 
-    new StringListParameter(this, "PrivateSubnetIdsParameter", {
-      parameterName: vpcPrivateSubnetIdsParameterName(id),
-      stringListValue: vpc.privateSubnets.map((a) => a.subnetId),
-    });
+    if (vpc.privateSubnets && vpc.privateSubnets.length > 0) {
+      new StringListParameter(this, "PrivateSubnetIdsParameter", {
+        parameterName: vpcPrivateSubnetIdsParameterName(id),
+        stringListValue: vpc.privateSubnets.map((a) => a.subnetId),
+      });
 
-    new StringListParameter(this, "PrivateSubnetRouteTableIdsParameter", {
-      parameterName: vpcPrivateSubnetRouteTableIdsParameterName(id),
-      stringListValue: vpc.privateSubnets.map((a) => a.routeTable.routeTableId),
-    });
+      new StringListParameter(this, "PrivateSubnetRouteTableIdsParameter", {
+        parameterName: vpcPrivateSubnetRouteTableIdsParameterName(id),
+        stringListValue: vpc.privateSubnets.map(
+          (a) => a.routeTable.routeTableId
+        ),
+      });
+    }
 
-    new StringListParameter(this, "IsolatedSubnetIdsParameter", {
-      parameterName: vpcIsolatedSubnetIdsParameterName(id),
-      stringListValue: vpc.isolatedSubnets.map((a) => a.subnetId),
-    });
+    if (vpc.isolatedSubnets && vpc.isolatedSubnets.length > 0) {
+      new StringListParameter(this, "IsolatedSubnetIdsParameter", {
+        parameterName: vpcIsolatedSubnetIdsParameterName(id),
+        stringListValue: vpc.isolatedSubnets.map((a) => a.subnetId),
+      });
 
-    new StringListParameter(this, "IsolatedSubnetRouteTableIdsParameter", {
-      parameterName: vpcIsolatedSubnetRouteTableIdsParameterName(id),
-      stringListValue: vpc.isolatedSubnets.map(
-        (a) => a.routeTable.routeTableId
-      ),
-    });
+      new StringListParameter(this, "IsolatedSubnetRouteTableIdsParameter", {
+        parameterName: vpcIsolatedSubnetRouteTableIdsParameterName(id),
+        stringListValue: vpc.isolatedSubnets.map(
+          (a) => a.routeTable.routeTableId
+        ),
+      });
+    }
 
     {
       const sg = new SecurityGroup(this, "SecurityGroup", {

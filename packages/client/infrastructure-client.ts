@@ -1,6 +1,6 @@
 import { ArnComponents, aws_route53 as route53, Stack } from "aws-cdk-lib";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
-import { IVpc, SecurityGroup, Vpc } from "aws-cdk-lib/aws-ec2";
+import { IVpc, SecurityGroup, Vpc, VpcAttributes } from "aws-cdk-lib/aws-ec2";
 import {
   HttpNamespace,
   IHttpNamespace,
@@ -29,6 +29,10 @@ export interface DnsResult {
   readonly hostedZone: IHostedZone;
   readonly certificate: ICertificate;
 }
+
+type Mutable<T> = {
+  -readonly [k in keyof T]: T[k];
+};
 
 export class InfrastructureClient {
   constructor(protected infrastructureStackId: string) {}
@@ -74,7 +78,7 @@ export class InfrastructureClient {
       return StringParameter.valueFromLookup(scope, parameterName).split(",");
     };
 
-    return Vpc.fromVpcAttributes(scope, "VPC", {
+    const vpcAttrs: Mutable<VpcAttributes> = {
       vpcId: StringParameter.valueFromLookup(
         scope,
         vpcIdParameterName(this.infrastructureStackId)
@@ -88,19 +92,31 @@ export class InfrastructureClient {
       publicSubnetRouteTableIds: getStringListLookup(
         vpcPublicSubnetRouteTableIdsParameterName(this.infrastructureStackId)
       ),
-      privateSubnetIds: getStringListLookup(
+    };
+
+    // try to bring in this private subnets if present
+    try {
+      vpcAttrs.privateSubnetIds = getStringListLookup(
         vpcPrivateSubnetIdsParameterName(this.infrastructureStackId)
-      ),
-      privateSubnetRouteTableIds: getStringListLookup(
+      );
+      vpcAttrs.privateSubnetRouteTableIds = getStringListLookup(
         vpcPrivateSubnetRouteTableIdsParameterName(this.infrastructureStackId)
-      ),
-      isolatedSubnetIds: getStringListLookup(
+      );
+    } catch (e) {}
+
+    // try to bring in the isolated subnets if present
+    try {
+      vpcAttrs.isolatedSubnetIds = getStringListLookup(
         vpcIsolatedSubnetIdsParameterName(this.infrastructureStackId)
-      ),
-      isolatedSubnetRouteTableIds: getStringListLookup(
+      );
+
+      vpcAttrs.isolatedSubnetRouteTableIds = getStringListLookup(
         vpcIsolatedSubnetRouteTableIdsParameterName(this.infrastructureStackId)
-      ),
-    });
+      );
+    } catch (e) {}
+
+    // actually make the VPC object
+    return Vpc.fromVpcAttributes(scope, "VPC", vpcAttrs);
   }
 
   /**
