@@ -38,7 +38,7 @@ export function camelCase(str: string) {
         fourOrMoreConsecutiveCapsRegEx,
         function (match, _p1, offset) {
           return deCap(match, word.length - offset - match.length == 0);
-        }
+        },
       );
     }
     var firstLetter = word[0];

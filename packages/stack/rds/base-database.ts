@@ -20,8 +20,8 @@ export abstract class BaseDatabase extends Construct {
     });
     monitoringRole.addManagedPolicy(
       ManagedPolicy.fromAwsManagedPolicyName(
-        "service-role/AmazonRDSEnhancedMonitoringRole"
-      )
+        "service-role/AmazonRDSEnhancedMonitoringRole",
+      ),
     );
     return monitoringRole;
   }
@@ -50,13 +50,13 @@ export abstract class BaseDatabase extends Construct {
   protected applySecurityGroupRules(
     securityGroup: ISecurityGroup,
     databasePort: number,
-    makePubliclyReachable?: boolean
+    makePubliclyReachable?: boolean,
   ) {
     if (makePubliclyReachable) {
       // we allow access from all the internet to the default db port
       securityGroup.addIngressRule(
         ec2.Peer.anyIpv4(),
-        ec2.Port.tcp(databasePort)
+        ec2.Port.tcp(databasePort),
       );
     } else {
       // the db security group can only be connected to on the default db port and only from things ALSO IN THE SAME SECURITY GROUP

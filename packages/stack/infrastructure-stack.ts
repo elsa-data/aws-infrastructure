@@ -73,7 +73,7 @@ export class InfrastructureStack extends Stack {
       this,
       "VPC",
       props.network.vpcNameOrDefaultOrUndefined,
-      false
+      false,
     );
 
     // https://lzygo1995.medium.com/how-to-share-information-between-stacks-through-ssm-parameter-store-in-cdk-1a64e4e9d83a
@@ -107,7 +107,7 @@ export class InfrastructureStack extends Stack {
       new StringListParameter(this, "PrivateSubnetRouteTableIdsParameter", {
         parameterName: vpcPrivateSubnetRouteTableIdsParameterName(id),
         stringListValue: vpc.privateSubnets.map(
-          (a) => a.routeTable.routeTableId
+          (a) => a.routeTable.routeTableId,
         ),
       });
     } else {
@@ -130,7 +130,7 @@ export class InfrastructureStack extends Stack {
       new StringListParameter(this, "IsolatedSubnetRouteTableIdsParameter", {
         parameterName: vpcIsolatedSubnetRouteTableIdsParameterName(id),
         stringListValue: vpc.isolatedSubnets.map(
-          (a) => a.routeTable.routeTableId
+          (a) => a.routeTable.routeTableId,
         ),
       });
     } else {
@@ -330,7 +330,7 @@ export class InfrastructureStack extends Stack {
       for (const dbConfig of props.databases) {
         if (!/[a-zA-Z0-9_.]+/.test(dbConfig.name))
           throw new Error(
-            `The database name ${dbConfig.name} doesn't meet the limited list of allowed characters (the name is used in SSM etc)`
+            `The database name ${dbConfig.name} doesn't meet the limited list of allowed characters (the name is used in SSM etc)`,
           );
 
         let cdkIdSafeDbName = camelCase(dbConfig.name);
@@ -357,7 +357,7 @@ export class InfrastructureStack extends Stack {
               }),
               generateStringKey: "password",
             },
-          }
+          },
         );
 
         let baseDb: BaseDatabase;
@@ -381,7 +381,7 @@ export class InfrastructureStack extends Stack {
             break;
           default:
             throw new Error(
-              `Unknown postgres database type ${dbConfig.postgresType}`
+              `Unknown postgres database type ${dbConfig.postgresType}`,
             );
         }
 
@@ -398,7 +398,7 @@ export class InfrastructureStack extends Stack {
           {
             parameterName: `/${id}/Database/${dbConfig.name}/dsnWithPassword`,
             stringValue: baseDb.dsnWithTokens,
-          }
+          },
         );
 
         new StringParameter(
@@ -407,7 +407,7 @@ export class InfrastructureStack extends Stack {
           {
             parameterName: `/${id}/Database/${dbConfig.name}/dsnNoPassword`,
             stringValue: baseDb.dsnNoPassword,
-          }
+          },
         );
 
         new StringParameter(
@@ -416,7 +416,7 @@ export class InfrastructureStack extends Stack {
           {
             parameterName: `/${id}/Database/${dbConfig.name}/hostname`,
             stringValue: baseDb.hostname,
-          }
+          },
         );
 
         new StringParameter(this, `${cdkIdSafeDbName}DatabasePortParameter`, {
@@ -430,7 +430,7 @@ export class InfrastructureStack extends Stack {
           {
             parameterName: `/${id}/Database/${dbConfig.name}/adminUser`,
             stringValue: dbConfig.adminUser,
-          }
+          },
         );
 
         new StringParameter(
@@ -439,7 +439,7 @@ export class InfrastructureStack extends Stack {
           {
             parameterName: `/${id}/Database/${dbConfig.name}/adminPasswordSecretArn`,
             stringValue: baseDbSecret.secretArn,
-          }
+          },
         );
 
         new StringParameter(
@@ -448,7 +448,7 @@ export class InfrastructureStack extends Stack {
           {
             parameterName: `/${id}/Database/${dbConfig.name}/securityGroupId`,
             stringValue: baseDb.securityGroup.securityGroupId,
-          }
+          },
         );
 
         if (dbConfig.edgeDb) {
@@ -456,7 +456,7 @@ export class InfrastructureStack extends Stack {
           if (dbConfig.edgeDb.makePubliclyReachable)
             if (!cert || !hz)
               throw new Error(
-                "If the UI is going to be switched on for EdgeDb then a certificate and hosted zone also needs to be specified"
+                "If the UI is going to be switched on for EdgeDb then a certificate and hosted zone also needs to be specified",
               );
 
           /**
@@ -497,10 +497,10 @@ export class InfrastructureStack extends Stack {
             {
               parameterName: databaseEdgeDbDsnNoPasswordOrDatabaseParameterName(
                 id,
-                dbConfig.name
+                dbConfig.name,
               ),
               stringValue: edgeDb.dsnForEnvironmentVariable,
-            }
+            },
           );
 
           new StringParameter(
@@ -509,10 +509,10 @@ export class InfrastructureStack extends Stack {
             {
               parameterName: databaseEdgeDbAdminPasswordSecretArnParameterName(
                 id,
-                dbConfig.name
+                dbConfig.name,
               ),
               stringValue: edgeDb.passwordSecret.secretArn,
-            }
+            },
           );
 
           new StringParameter(
@@ -521,10 +521,10 @@ export class InfrastructureStack extends Stack {
             {
               parameterName: databaseEdgeDbSecurityGroupIdParameterName(
                 id,
-                dbConfig.name
+                dbConfig.name,
               ),
               stringValue: edgeDb.securityGroup.securityGroupId,
-            }
+            },
           );
         }
       }

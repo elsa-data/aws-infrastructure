@@ -61,7 +61,7 @@ export class EdgeDbLoadBalancerUiConstruct extends Construct {
     nlbSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443));
     nlbSecurityGroup.addEgressRule(
       props.serviceSecurityGroup,
-      ec2.Port.tcp(props.servicePort)
+      ec2.Port.tcp(props.servicePort),
     );
 
     // NLBs now have security groups - but not in CDK yet - this is a workaround - Aug 2023

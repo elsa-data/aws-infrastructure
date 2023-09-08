@@ -79,7 +79,7 @@ export class InstanceBaseDatabase extends BaseDatabase {
     this.applySecurityGroupRules(
       this._securityGroup,
       this._instance.instanceEndpoint.port,
-      props.makePubliclyReachable
+      props.makePubliclyReachable,
     );
 
     this._dsnWithTokens =

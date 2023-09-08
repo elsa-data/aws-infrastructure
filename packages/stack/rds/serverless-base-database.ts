@@ -27,7 +27,7 @@ export class ServerlessBaseDatabase extends BaseDatabase {
   constructor(
     scope: Construct,
     id: string,
-    props: ServerlessBaseDatabaseProps
+    props: ServerlessBaseDatabaseProps,
   ) {
     super(scope, id);
 
@@ -59,7 +59,7 @@ export class ServerlessBaseDatabase extends BaseDatabase {
     // https://github.com/aws/aws-cdk/issues/20197#issuecomment-1272360016
     {
       const cfnDBCluster = this._cluster.node.children.find(
-        (node) => node instanceof rds.CfnDBCluster
+        (node) => node instanceof rds.CfnDBCluster,
       ) as rds.CfnDBCluster;
       cfnDBCluster.serverlessV2ScalingConfiguration = {
         minCapacity: props.minCapacity ?? 0.5,
@@ -93,7 +93,7 @@ export class ServerlessBaseDatabase extends BaseDatabase {
     this.applySecurityGroupRules(
       this._securityGroup,
       this._cluster.clusterEndpoint.port,
-      props.makePubliclyReachable
+      props.makePubliclyReachable,
     );
 
     this._dsnWithTokens =

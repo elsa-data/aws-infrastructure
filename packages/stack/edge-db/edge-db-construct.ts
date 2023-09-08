@@ -67,7 +67,7 @@ export class EdgeDbConstruct extends Construct {
         generateSecretString: {
           excludePunctuation: true,
         },
-      }
+      },
     );
 
     const edgeDbService = new EdgeDbServiceConstruct(this, "EdgeDbService", {
@@ -87,7 +87,7 @@ export class EdgeDbConstruct extends Construct {
         servicePort: edgeDbService.servicePort,
         serviceSecurityGroup: edgeDbService.securityGroup,
         ...props.edgeDbLoadBalancerProtocol,
-      }
+      },
     );
 
     const edgeDbPortString =
@@ -112,7 +112,7 @@ export class EdgeDbConstruct extends Construct {
           servicePort: edgeDbService.servicePort,
           serviceSecurityGroup: edgeDbService.securityGroup,
           ...props.edgeDbLoadBalancerUi,
-        }
+        },
       );
 
       const tlsPortString =

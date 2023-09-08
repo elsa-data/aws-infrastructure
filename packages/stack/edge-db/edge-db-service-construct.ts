@@ -83,7 +83,7 @@ export class EdgeDbServiceConstruct extends Construct {
       assumedBy: new iam.ServicePrincipal("ecs-tasks.amazonaws.com"),
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName(
-          "service-role/AmazonECSTaskExecutionRolePolicy"
+          "service-role/AmazonECSTaskExecutionRolePolicy",
         ),
       ],
     });
@@ -126,7 +126,7 @@ export class EdgeDbServiceConstruct extends Construct {
     const secrets: { [k: string]: ecs.Secret } = {
       // CDK is smart enough to grant permissions to read these secrets to the execution role
       EDGEDB_SERVER_PASSWORD: ecs.Secret.fromSecretsManager(
-        props.superUserSecret
+        props.superUserSecret,
       ),
     };
 
@@ -135,7 +135,7 @@ export class EdgeDbServiceConstruct extends Construct {
     taskDefinition.addContainer(containerName, {
       // https://hub.docker.com/r/edgedb/edgedb/tags
       image: ecs.ContainerImage.fromRegistry(
-        `edgedb/edgedb:${props.edgeDbVersion}`
+        `edgedb/edgedb:${props.edgeDbVersion}`,
       ),
       environment: env,
       secrets: secrets,

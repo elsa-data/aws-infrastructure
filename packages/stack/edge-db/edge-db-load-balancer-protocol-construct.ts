@@ -57,11 +57,11 @@ export class EdgeDbLoadBalancerProtocolConstruct extends Construct {
         allowAllIpv6Outbound: false,
         description:
           "Security group of the NLB (EdgeDb protocol) allowing egress to the EdgeDb service on its port",
-      }
+      },
     );
     nlbSecurityGroup.addEgressRule(
       props.serviceSecurityGroup,
-      ec2.Port.tcp(props.servicePort)
+      ec2.Port.tcp(props.servicePort),
     );
 
     // NLBs now have security groups - but not in CDK yet - this is a workaround - Aug 2023

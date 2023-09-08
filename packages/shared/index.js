@@ -58,21 +58,21 @@ function namespaceArnParameterName(infrastructureStackId) {
 
 function databaseEdgeDbDsnNoPasswordOrDatabaseParameterName(
   infrastructureStackId,
-  dbName
+  dbName,
 ) {
   return `/${infrastructureStackId}/Database/${dbName}/EdgeDb/dsnNoPasswordOrDatabase`;
 }
 
 function databaseEdgeDbAdminPasswordSecretArnParameterName(
   infrastructureStackId,
-  dbName
+  dbName,
 ) {
   return `/${infrastructureStackId}/Database/${dbName}/EdgeDb/adminPasswordSecretArn`;
 }
 
 function databaseEdgeDbSecurityGroupIdParameterName(
   infrastructureStackId,
-  dbName
+  dbName,
 ) {
   return `/${infrastructureStackId}/Database/${dbName}/EdgeDb/securityGroupId`;
 }

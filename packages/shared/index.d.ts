@@ -1,66 +1,66 @@
 export function vpcIdParameterName(infrastructureStackId: string): string;
 
 export function vpcAvailabilityZonesParameterName(
-  infrastructureStackId: string
+  infrastructureStackId: string,
 ): string;
 
 export function vpcPublicSubnetIdsParameterName(
-  infrastructureStackId: string
+  infrastructureStackId: string,
 ): string;
 
 export function vpcPublicSubnetRouteTableIdsParameterName(
-  infrastructureStackId: string
+  infrastructureStackId: string,
 ): string;
 
 export function vpcPrivateSubnetIdsParameterName(
-  infrastructureStackId: string
+  infrastructureStackId: string,
 ): string;
 
 export function vpcPrivateSubnetRouteTableIdsParameterName(
-  infrastructureStackId: string
+  infrastructureStackId: string,
 ): string;
 
 export function vpcIsolatedSubnetIdsParameterName(
-  infrastructureStackId: string
+  infrastructureStackId: string,
 ): string;
 
 export function vpcIsolatedSubnetRouteTableIdsParameterName(
-  infrastructureStackId: string
+  infrastructureStackId: string,
 ): string;
 
 export function vpcSecurityGroupIdParameterName(
-  infrastructureStackId: string
+  infrastructureStackId: string,
 ): string;
 
 export function vpcInternalSecurityGroupIdParameterName(
-  infrastructureStackId: string
+  infrastructureStackId: string,
 ): string;
 
 export function secretsManagerSecretsPrefixParameterName(
-  infrastructureStackId: string
+  infrastructureStackId: string,
 ): string;
 
 export function namespaceNameParameterName(
-  infrastructureStackId: string
+  infrastructureStackId: string,
 ): string;
 
 export function namespaceIdParameterName(infrastructureStackId: string): string;
 
 export function namespaceArnParameterName(
-  infrastructureStackId: string
+  infrastructureStackId: string,
 ): string;
 
 export function databaseEdgeDbDsnNoPasswordOrDatabaseParameterName(
   infrastructureStackId: string,
-  dbName: string
+  dbName: string,
 ): string;
 
 export function databaseEdgeDbAdminPasswordSecretArnParameterName(
   infrastructureStackId: string,
-  dbName: string
+  dbName: string,
 ): string;
 
 export function databaseEdgeDbSecurityGroupIdParameterName(
   infrastructureStackId: string,
-  dbName: string
+  dbName: string,
 ): string;

@@ -25,7 +25,7 @@ export function smartVpcConstruct(
   scope: Construct,
   id: string,
   vpcNameOrDefaultOrUndefined?: string,
-  enableEcrEndpoints?: boolean
+  enableEcrEndpoints?: boolean,
 ): IVpc {
   // if no vpc details are given then we construct a new VPC
   if (isNil(vpcNameOrDefaultOrUndefined)) {
@@ -37,7 +37,7 @@ export function smartVpcConstruct(
 
     const addEndpoint = (
       name: string,
-      service: InterfaceVpcEndpointAwsService
+      service: InterfaceVpcEndpointAwsService,
     ) => {
       vpc.addInterfaceEndpoint(name + "Endpoint", {
         service: service,

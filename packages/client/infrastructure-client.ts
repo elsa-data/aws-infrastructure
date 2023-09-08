@@ -51,7 +51,7 @@ export class InfrastructureClient {
   private delayedArnLookupHelper(
     scope: Construct,
     parameterName: string,
-    dummyComponents: ArnComponents
+    dummyComponents: ArnComponents,
   ): string {
     // attempt to get the value from CDK - this might be a dummy value however
     const lookupValue = StringParameter.valueFromLookup(scope, parameterName);
@@ -85,26 +85,26 @@ export class InfrastructureClient {
     const vpcAttrs: Mutable<VpcAttributes> = {
       vpcId: StringParameter.valueFromLookup(
         scope,
-        vpcIdParameterName(this.infrastructureStackId)
+        vpcIdParameterName(this.infrastructureStackId),
       ),
       availabilityZones: getStringListLookup(
-        vpcAvailabilityZonesParameterName(this.infrastructureStackId)
+        vpcAvailabilityZonesParameterName(this.infrastructureStackId),
       )!,
       publicSubnetIds: getStringListLookup(
-        vpcPublicSubnetIdsParameterName(this.infrastructureStackId)
+        vpcPublicSubnetIdsParameterName(this.infrastructureStackId),
       ),
       publicSubnetRouteTableIds: getStringListLookup(
-        vpcPublicSubnetRouteTableIdsParameterName(this.infrastructureStackId)
+        vpcPublicSubnetRouteTableIdsParameterName(this.infrastructureStackId),
       ),
     };
 
     // try to bring in this private subnets if present
     try {
       vpcAttrs.privateSubnetIds = getStringListLookup(
-        vpcPrivateSubnetIdsParameterName(this.infrastructureStackId)
+        vpcPrivateSubnetIdsParameterName(this.infrastructureStackId),
       );
       vpcAttrs.privateSubnetRouteTableIds = getStringListLookup(
-        vpcPrivateSubnetRouteTableIdsParameterName(this.infrastructureStackId)
+        vpcPrivateSubnetRouteTableIdsParameterName(this.infrastructureStackId),
       );
     } catch (e) {}
 
@@ -114,7 +114,7 @@ export class InfrastructureClient {
       vpcAttrs.isolatedSubnetRouteTableIds = undefined;
 
       const isolatedSubs = getStringListLookup(
-        vpcIsolatedSubnetIdsParameterName(this.infrastructureStackId)
+        vpcIsolatedSubnetIdsParameterName(this.infrastructureStackId),
       );
 
       // sometimes even if the isolated subnets parameter does not exist - what comes back is a string
@@ -128,8 +128,8 @@ export class InfrastructureClient {
 
         vpcAttrs.isolatedSubnetRouteTableIds = getStringListLookup(
           vpcIsolatedSubnetRouteTableIdsParameterName(
-            this.infrastructureStackId
-          )
+            this.infrastructureStackId,
+          ),
         );
       }
     } catch (e) {}
@@ -148,15 +148,15 @@ export class InfrastructureClient {
     return HttpNamespace.fromHttpNamespaceAttributes(scope, "Namespace", {
       namespaceArn: StringParameter.valueFromLookup(
         scope,
-        `/${this.infrastructureStackId}/HttpNamespace/namespaceArn`
+        `/${this.infrastructureStackId}/HttpNamespace/namespaceArn`,
       ),
       namespaceId: StringParameter.valueFromLookup(
         scope,
-        `/${this.infrastructureStackId}/HttpNamespace/namespaceId`
+        `/${this.infrastructureStackId}/HttpNamespace/namespaceId`,
       ),
       namespaceName: StringParameter.valueFromLookup(
         scope,
-        `/${this.infrastructureStackId}/HttpNamespace/namespaceName`
+        `/${this.infrastructureStackId}/HttpNamespace/namespaceName`,
       ),
     });
   }
@@ -174,13 +174,13 @@ export class InfrastructureClient {
       {
         hostedZoneId: StringParameter.valueFromLookup(
           scope,
-          `/${this.infrastructureStackId}/HostedZone/hostedZoneId`
+          `/${this.infrastructureStackId}/HostedZone/hostedZoneId`,
         ),
         zoneName: StringParameter.valueFromLookup(
           scope,
-          `/${this.infrastructureStackId}/HostedZone/zoneName`
+          `/${this.infrastructureStackId}/HostedZone/zoneName`,
         ),
-      }
+      },
     );
 
     const certificate = Certificate.fromCertificateArn(
@@ -188,8 +188,8 @@ export class InfrastructureClient {
       "SslCert",
       StringParameter.valueFromLookup(
         scope,
-        `/${this.infrastructureStackId}/Certificate/certificateArn`
-      )
+        `/${this.infrastructureStackId}/Certificate/certificateArn`,
+      ),
     );
 
     return {
@@ -207,11 +207,11 @@ export class InfrastructureClient {
    */
   public getEdgeDbDsnNoPasswordOrDatabaseFromLookup(
     scope: Construct,
-    databaseInstanceName: string
+    databaseInstanceName: string,
   ) {
     return StringParameter.valueFromLookup(
       scope,
-      `/${this.infrastructureStackId}/Database/${databaseInstanceName}/EdgeDb/dsnNoPasswordOrDatabase`
+      `/${this.infrastructureStackId}/Database/${databaseInstanceName}/EdgeDb/dsnNoPasswordOrDatabase`,
     );
   }
 
@@ -224,7 +224,7 @@ export class InfrastructureClient {
    */
   public getEdgeDbSecurityGroupFromLookup(
     scope: Construct,
-    databaseInstanceName: string
+    databaseInstanceName: string,
   ) {
     return SecurityGroup.fromSecurityGroupId(
       scope,
@@ -233,14 +233,14 @@ export class InfrastructureClient {
         scope,
         databaseEdgeDbSecurityGroupIdParameterName(
           this.infrastructureStackId,
-          databaseInstanceName
-        )
+          databaseInstanceName,
+        ),
       ),
       {
         // the client stacks where we use these security groups
         // should not ever edit the ingress/egress rules
         mutable: false,
-      }
+      },
     );
   }
 
@@ -253,7 +253,7 @@ export class InfrastructureClient {
    */
   public getEdgeDbAdminPasswordSecretFromLookup(
     scope: Construct,
-    databaseInstanceName: string
+    databaseInstanceName: string,
   ): ISecret {
     return Secret.fromSecretCompleteArn(
       scope,
@@ -265,8 +265,8 @@ export class InfrastructureClient {
           service: "secretsmanager",
           resource: "secret",
           resourceName: "adminPasswordSecretThoughThisIsNotReal",
-        }
-      )
+        },
+      ),
     );
   }
 
@@ -285,8 +285,8 @@ export class InfrastructureClient {
         {
           service: "s3",
           resource: "a-bucket-name-though-this-is-not-real",
-        }
-      )
+        },
+      ),
     );
   }
 
@@ -300,7 +300,7 @@ export class InfrastructureClient {
   public getSecretsPrefixFromLookup(scope: Construct): string {
     return StringParameter.valueFromLookup(
       scope,
-      secretsManagerSecretsPrefixParameterName(this.infrastructureStackId)
+      secretsManagerSecretsPrefixParameterName(this.infrastructureStackId),
     );
   }
 
@@ -320,7 +320,7 @@ export class InfrastructureClient {
   public getSecretPolicyStatementFromLookup(scope: Construct): PolicyStatement {
     const secretsPrefix = StringParameter.valueFromLookup(
       scope,
-      secretsManagerSecretsPrefixParameterName(this.infrastructureStackId)
+      secretsManagerSecretsPrefixParameterName(this.infrastructureStackId),
     );
 
     return new PolicyStatement({
@@ -340,11 +340,11 @@ export class InfrastructureClient {
    * @param scope
    */
   public getCloudMapDiscoveryPolicyStatementFromLookup(
-    scope: Construct
+    scope: Construct,
   ): PolicyStatement {
     const nsArn = StringParameter.valueFromLookup(
       scope,
-      namespaceArnParameterName(this.infrastructureStackId)
+      namespaceArnParameterName(this.infrastructureStackId),
     );
 
     return new PolicyStatement({
