@@ -110,6 +110,15 @@ export class InfrastructureStack extends Stack {
           (a) => a.routeTable.routeTableId
         ),
       });
+    } else {
+      // CDK has strange behaviour when looking up "optional" parameters - so instead
+      // we create a parameter of zero length to indicate that we do not have any
+      // private subnets
+      // our infrastructure client handles the other end of this behaviour
+      new StringListParameter(this, "PrivateSubnetIdsParameter", {
+        parameterName: vpcPrivateSubnetIdsParameterName(id),
+        stringListValue: [],
+      });
     }
 
     if (vpc.isolatedSubnets && vpc.isolatedSubnets.length > 0) {
@@ -123,6 +132,15 @@ export class InfrastructureStack extends Stack {
         stringListValue: vpc.isolatedSubnets.map(
           (a) => a.routeTable.routeTableId
         ),
+      });
+    } else {
+      // CDK has strange behaviour when looking up "optional" parameters - so instead
+      // we create a parameter of zero length to indicate that we do not have any
+      // isolated subnets
+      // our infrastructure client handles the other end of this behaviour
+      new StringListParameter(this, "IsolatedSubnetIdsParameter", {
+        parameterName: vpcIsolatedSubnetIdsParameterName(id),
+        stringListValue: [],
       });
     }
 
