@@ -117,7 +117,8 @@ export class InfrastructureStack extends Stack {
       // our infrastructure client handles the other end of this behaviour
       new StringListParameter(this, "PrivateSubnetIdsParameter", {
         parameterName: vpcPrivateSubnetIdsParameterName(id),
-        stringListValue: [""],
+        // grrr... ssm string lists can neither be zero length... nor contain empty strings...
+        stringListValue: ["empty"],
       });
     }
 
@@ -140,7 +141,8 @@ export class InfrastructureStack extends Stack {
       // our infrastructure client handles the other end of this behaviour
       new StringListParameter(this, "IsolatedSubnetIdsParameter", {
         parameterName: vpcIsolatedSubnetIdsParameterName(id),
-        stringListValue: [""],
+        // grrr... ssm string lists can neither be zero length... nor contain empty strings...
+        stringListValue: ["empty"],
       });
     }
 
