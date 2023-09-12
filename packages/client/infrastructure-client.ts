@@ -98,61 +98,59 @@ export class InfrastructureClient {
       ),
     };
 
-    // try to bring in this private subnets if present
-    try {
+    // depending on the values of these parameters we may decide to *not* have this subnet
+    {
       vpcAttrs.privateSubnetIds = undefined;
       vpcAttrs.privateSubnetRouteTableIds = undefined;
 
       const privateSubs = getStringListLookup(
         vpcPrivateSubnetIdsParameterName(this.infrastructureStackId),
       );
+      const privateSubRoutes = getStringListLookup(
+        vpcPrivateSubnetRouteTableIdsParameterName(this.infrastructureStackId),
+      );
 
-      // sometimes even if the private subnets parameter does not exist - what comes back is a string
-      // error message - hence our test here to really really establish we have real subnets
-      // this handles various "empty" private subs cases
+      // we always construct these parameters in the infrastructure stack - but we set it
+      // to "empty" to indicate that we don't want these subnets
+      // NOTE: we also have to handle the CDK context stage here - which will return a "dummy-value"
       if (
         privateSubs &&
         privateSubs.length > 0 &&
-        privateSubs[0].includes("subnet-")
+        (privateSubs[0].includes("subnet-") ||
+          privateSubs[0].includes("dummy-value-for"))
       ) {
         vpcAttrs.privateSubnetIds = privateSubs;
-
-        // the assumption is that if private subnets was set - so was its routing
-        vpcAttrs.privateSubnetRouteTableIds = getStringListLookup(
-          vpcPrivateSubnetRouteTableIdsParameterName(
-            this.infrastructureStackId,
-          ),
-        );
+        vpcAttrs.privateSubnetRouteTableIds = privateSubRoutes;
       }
-    } catch (e) {}
+    }
 
-    // try to bring in the isolated subnets if present
-    try {
+    // depending on the values of these parameters we may decide to *not* have this subnet
+    {
       vpcAttrs.isolatedSubnetIds = undefined;
       vpcAttrs.isolatedSubnetRouteTableIds = undefined;
 
       const isolatedSubs = getStringListLookup(
         vpcIsolatedSubnetIdsParameterName(this.infrastructureStackId),
       );
+      const isolatedSubRoutes = getStringListLookup(
+        vpcIsolatedSubnetRouteTableIdsParameterName(this.infrastructureStackId),
+      );
 
-      // sometimes even if the isolated subnets parameter does not exist - what comes back is a string
-      // error message - hence our test here to really really establish we have real subnets
-      // this handles various "empty" private subs cases
+      // we always construct these parameters in the infrastructure stack - but we set it
+      // to "empty" to indicate that we don't want these subnets
+      // NOTE: we also have to handle the CDK context stage here - which will return a "dummy-value"
       if (
         isolatedSubs &&
         isolatedSubs.length > 0 &&
-        isolatedSubs[0].includes("subnet-")
+        (isolatedSubs[0].includes("subnet-") ||
+          isolatedSubs[0].includes("dummy-value-for"))
       ) {
         vpcAttrs.isolatedSubnetIds = isolatedSubs;
 
         // the assumption is that if isolated subnets was set - so was its routing
-        vpcAttrs.isolatedSubnetRouteTableIds = getStringListLookup(
-          vpcIsolatedSubnetRouteTableIdsParameterName(
-            this.infrastructureStackId,
-          ),
-        );
+        vpcAttrs.isolatedSubnetRouteTableIds = isolatedSubRoutes;
       }
-    } catch (e) {}
+    }
 
     // actually make the VPC object
     return Vpc.fromVpcAttributes(scope, "VPC", vpcAttrs);
