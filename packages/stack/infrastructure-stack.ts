@@ -112,12 +112,12 @@ export class InfrastructureStack extends Stack {
       });
     } else {
       // CDK has strange behaviour when looking up "optional" parameters - so instead
-      // we create a parameter of zero length to indicate that we do not have any
+      // we create a parameter with a single empty string to indicate that we do not have any
       // private subnets
       // our infrastructure client handles the other end of this behaviour
       new StringListParameter(this, "PrivateSubnetIdsParameter", {
         parameterName: vpcPrivateSubnetIdsParameterName(id),
-        stringListValue: [],
+        stringListValue: [""],
       });
     }
 
@@ -135,12 +135,12 @@ export class InfrastructureStack extends Stack {
       });
     } else {
       // CDK has strange behaviour when looking up "optional" parameters - so instead
-      // we create a parameter of zero length to indicate that we do not have any
+      // we create a parameter with a single empty string to indicate that we do not have any
       // isolated subnets
       // our infrastructure client handles the other end of this behaviour
       new StringListParameter(this, "IsolatedSubnetIdsParameter", {
         parameterName: vpcIsolatedSubnetIdsParameterName(id),
-        stringListValue: [],
+        stringListValue: [""],
       });
     }
 

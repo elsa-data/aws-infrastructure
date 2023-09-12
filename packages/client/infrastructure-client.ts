@@ -100,12 +100,30 @@ export class InfrastructureClient {
 
     // try to bring in this private subnets if present
     try {
-      vpcAttrs.privateSubnetIds = getStringListLookup(
+      vpcAttrs.privateSubnetIds = undefined;
+      vpcAttrs.privateSubnetRouteTableIds = undefined;
+
+      const privateSubs = getStringListLookup(
         vpcPrivateSubnetIdsParameterName(this.infrastructureStackId),
       );
-      vpcAttrs.privateSubnetRouteTableIds = getStringListLookup(
-        vpcPrivateSubnetRouteTableIdsParameterName(this.infrastructureStackId),
-      );
+
+      // sometimes even if the private subnets parameter does not exist - what comes back is a string
+      // error message - hence our test here to really really establish we have real subnets
+      // this handles various "empty" private subs cases
+      if (
+        privateSubs &&
+        privateSubs.length > 0 &&
+        privateSubs[0].includes("subnet-")
+      ) {
+        vpcAttrs.privateSubnetIds = privateSubs;
+
+        // the assumption is that if private subnets was set - so was its routing
+        vpcAttrs.privateSubnetRouteTableIds = getStringListLookup(
+          vpcPrivateSubnetRouteTableIdsParameterName(
+            this.infrastructureStackId,
+          ),
+        );
+      }
     } catch (e) {}
 
     // try to bring in the isolated subnets if present
@@ -119,6 +137,7 @@ export class InfrastructureClient {
 
       // sometimes even if the isolated subnets parameter does not exist - what comes back is a string
       // error message - hence our test here to really really establish we have real subnets
+      // this handles various "empty" private subs cases
       if (
         isolatedSubs &&
         isolatedSubs.length > 0 &&
@@ -126,6 +145,7 @@ export class InfrastructureClient {
       ) {
         vpcAttrs.isolatedSubnetIds = isolatedSubs;
 
+        // the assumption is that if isolated subnets was set - so was its routing
         vpcAttrs.isolatedSubnetRouteTableIds = getStringListLookup(
           vpcIsolatedSubnetRouteTableIdsParameterName(
             this.infrastructureStackId,
