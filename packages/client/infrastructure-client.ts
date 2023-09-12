@@ -146,8 +146,6 @@ export class InfrastructureClient {
           isolatedSubs[0].includes("dummy-value-for"))
       ) {
         vpcAttrs.isolatedSubnetIds = isolatedSubs;
-
-        // the assumption is that if isolated subnets was set - so was its routing
         vpcAttrs.isolatedSubnetRouteTableIds = isolatedSubRoutes;
       }
     }
