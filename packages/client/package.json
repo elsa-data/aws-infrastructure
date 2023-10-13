@@ -15,7 +15,7 @@
   },
   "license": "MIT",
   "scripts": {
-    "build": "jsii -v",
+    "build": "jsii",
     "build:watch": "jsii -w",
     "package": "jsii-pacmak -v",
     "clean": "git clean -fXd"
@@ -30,8 +30,8 @@
     "targets": {}
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.93.0",
-    "constructs": "^10.2.70"
+    "aws-cdk-lib": "^2.100.0",
+    "constructs": "^10.3.0"
   },
   "dependencies": {
     "shared": "file:../shared"
@@ -40,10 +40,10 @@
     "shared"
   ],
   "devDependencies": {
-    "aws-cdk-lib": "2.93.0",
-    "constructs": "10.2.70",
-    "jsii": "5.1.12",
-    "jsii-pacmak": "1.88.0",
+    "aws-cdk-lib": "2.100.0",
+    "constructs": "10.3.0",
+    "jsii": "5.2.14",
+    "jsii-pacmak": "1.90.0",
     "publib": "0.2.737"
   }
 }

@@ -54,7 +54,7 @@ new InfrastructureStack(app, "ElsaDataDevInfrastructureStack", {
       makePubliclyReachable: false,
       destroyOnRemove: true,
       edgeDb: {
-        version: "3.2",
+        version: "3.4",
         makePubliclyReachable: {
           urlPrefix: "elsa-data-edge-db",
         },

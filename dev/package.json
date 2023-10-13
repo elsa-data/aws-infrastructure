@@ -2,25 +2,27 @@
   "name": "dev",
   "version": "0.0.0",
   "private": true,
-  "description": "Deployment for dev purposes of the infrastructure stack - not for publishing",
   "author": {
     "name": "University of Melbourne Centre for Cancer Research",
     "organization": true
   },
   "license": "MIT",
+  "description": "Deployment for dev purposes of the infrastructure stack - not for publishing",
   "scripts": {
+    "deploy": "pnpm -w run build && cdk deploy",
+    "destroy": "pnpm -w run build && cdk destroy",
     "client-test-deploy": "cdk -a \"npx ts-node --prefer-ts-exts client-test.ts\" deploy",
     "client-test-destroy": "cdk -a \"npx ts-node --prefer-ts-exts client-test.ts\" destroy",
     "clean": "git clean -fXd"
   },
   "dependencies": {
-    "cdk-nag": "2.27.117",
+    "cdk-nag": "2.27.160",
     "elsa-data-aws-infrastructure": "link:../packages/stack",
     "elsa-data-aws-infrastructure-client": "link:../packages/client"
   },
   "devDependencies": {
-    "aws-cdk": "2.93.0",
-    "aws-cdk-lib": "2.93.0",
-    "constructs": "10.2.70"
+    "aws-cdk": "2.100.0",
+    "aws-cdk-lib": "2.100.0",
+    "constructs": "10.3.0"
   }
 }
