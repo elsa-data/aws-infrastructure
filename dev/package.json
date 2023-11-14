@@ -23,6 +23,7 @@
   "devDependencies": {
     "aws-cdk": "2.100.0",
     "aws-cdk-lib": "2.100.0",
-    "constructs": "10.3.0"
+    "constructs": "10.3.0",
+    "tsconfig-paths": "^4.2.0"
   }
 }

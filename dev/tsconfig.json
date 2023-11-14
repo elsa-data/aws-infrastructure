@@ -1,0 +1,11 @@
+{
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  },
+  "compilerOptions": {
+    "paths": {
+      "@common/*": ["../packages/common/*"]
+    }
+  },
+  "exclude": ["node_modules"]
+}
