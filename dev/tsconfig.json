@@ -1,7 +1,7 @@
 {
   // tsconfig-paths is needed because whilst our JSII packages that get built (and used downstream via npm)
   // successfully remove the @common syntax (and turn the TS into JS) - this dev project
-  // references the packages directly as typescript. So it still need somehow to resolve the @common
+  // references the packages directly as typescript. So it still needs somehow to resolve the @common
   // imports. Here we give it a hint how to do that.
   "ts-node": {
     "require": ["tsconfig-paths/register"]
