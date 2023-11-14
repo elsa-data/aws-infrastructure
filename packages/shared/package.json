@@ -1,9 +1,0 @@
-{
-  "name": "shared",
-  "version": "0.0.0",
-  "private": true,
-  "description": "A tiny piece of Javascript that lets us share string definitions between client/stack - not for publishing to npm - to be used as a local reference",
-  "main": "index.js",
-  "types": "index.d.ts",
-  "license": "MIT"
-}

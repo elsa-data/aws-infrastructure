@@ -27,18 +27,19 @@
   ],
   "jsii": {
     "outdir": "dist",
-    "targets": {}
+    "targets": {},
+    "tsc": {
+      "paths": {
+        "@common/*": [
+          "../common/*"
+        ]
+      }
+    }
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.100.0",
     "constructs": "^10.3.0"
   },
-  "dependencies": {
-    "shared": "file:../shared"
-  },
-  "bundledDependencies": [
-    "shared"
-  ],
   "devDependencies": {
     "aws-cdk-lib": "2.100.0",
     "constructs": "10.3.0",
