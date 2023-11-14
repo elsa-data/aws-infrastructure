@@ -21,7 +21,7 @@ import {
   vpcPrivateSubnetRouteTableIdsParameterName,
   vpcPublicSubnetIdsParameterName,
   vpcPublicSubnetRouteTableIdsParameterName,
-} from "shared";
+} from "@common/parameter-names";
 import { ISecret, Secret } from "aws-cdk-lib/aws-secretsmanager";
 import { Bucket, IBucket } from "aws-cdk-lib/aws-s3";
 

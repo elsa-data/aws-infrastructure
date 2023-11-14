@@ -11,7 +11,7 @@
   "homepage": "https://github.com/elsa-data",
   "repository": {
     "type": "git",
-    "url": "https://github.com/elsa-data/elsa-data-aws-infrastructure/stack"
+    "url": "https://github.com/elsa-data/aws-infrastructure/stack"
   },
   "license": "MIT",
   "scripts": {
@@ -27,18 +27,19 @@
   ],
   "jsii": {
     "outdir": "dist",
-    "targets": {}
+    "targets": {},
+    "tsc": {
+      "paths": {
+        "@common/*": [
+          "../common/*"
+        ]
+      }
+    }
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.100.0",
     "constructs": "^10.3.0"
   },
-  "dependencies": {
-    "shared": "file:../shared"
-  },
-  "bundledDependencies": [
-    "shared"
-  ],
   "devDependencies": {
     "aws-cdk": "2.100.0",
     "aws-cdk-lib": "2.100.0",
