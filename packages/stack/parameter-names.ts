@@ -70,6 +70,10 @@ export function namespaceArnParameterName(infrastructureStackId: string) {
   return `/${infrastructureStackId}/HttpNamespace/namespaceArn`;
 }
 
+export function certificateArnParameterName(infrastructureStackId: string) {
+  return `/${infrastructureStackId}/Certificate/certificateArn`;
+}
+
 export function databaseEdgeDbDsnNoPasswordOrDatabaseParameterName(
   infrastructureStackId: string,
   dbName: string,
