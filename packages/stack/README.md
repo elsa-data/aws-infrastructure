@@ -9,7 +9,7 @@ significant periods of time.
 ## Use
 
 The infrastructure stack resources can be accessed in another CDK stack
-through the use of the `@elsa-data/aws-infrastructure-client` project (and the
+through the use of the `@elsa-data/aws-infrastructure-stack` project (and the
 infrastructure stack name) - which
 provides SSM parameters containing values from the infrastructure.
 

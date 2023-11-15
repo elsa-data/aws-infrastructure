@@ -28,24 +28,18 @@
   "jsii": {
     "outdir": "dist",
     "targets": {},
-    "tsc": {
-      "paths": {
-        "@common/*": [
-          "../common/*"
-        ]
-      }
-    }
+    "tsc": {}
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.100.0",
+    "aws-cdk-lib": "^2.108.1",
     "constructs": "^10.3.0"
   },
   "devDependencies": {
-    "aws-cdk": "2.100.0",
-    "aws-cdk-lib": "2.100.0",
+    "aws-cdk": "2.108.1",
+    "aws-cdk-lib": "2.108.1",
     "constructs": "10.3.0",
-    "jsii": "5.2.14",
-    "jsii-pacmak": "1.90.0",
-    "publib": "0.2.737"
+    "jsii": "5.2.29",
+    "jsii-pacmak": "1.91.0",
+    "publib": "0.2.745"
   }
 }

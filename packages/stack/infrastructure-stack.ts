@@ -38,7 +38,7 @@ import {
   vpcPublicSubnetIdsParameterName,
   vpcPublicSubnetRouteTableIdsParameterName,
   vpcSecurityGroupIdParameterName,
-} from "@common/parameter-names";
+} from "./parameter-names";
 import { camelCase } from "./justCamelCase";
 
 export {

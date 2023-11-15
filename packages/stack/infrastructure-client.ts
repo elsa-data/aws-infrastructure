@@ -10,8 +10,11 @@ import { IHostedZone } from "aws-cdk-lib/aws-route53";
 import { Construct } from "constructs";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import {
+  certificateArnParameterName,
   databaseEdgeDbSecurityGroupIdParameterName,
   namespaceArnParameterName,
+  namespaceIdParameterName,
+  namespaceNameParameterName,
   secretsManagerSecretsPrefixParameterName,
   vpcAvailabilityZonesParameterName,
   vpcIdParameterName,
@@ -21,7 +24,7 @@ import {
   vpcPrivateSubnetRouteTableIdsParameterName,
   vpcPublicSubnetIdsParameterName,
   vpcPublicSubnetRouteTableIdsParameterName,
-} from "@common/parameter-names";
+} from "./parameter-names";
 import { ISecret, Secret } from "aws-cdk-lib/aws-secretsmanager";
 import { Bucket, IBucket } from "aws-cdk-lib/aws-s3";
 
@@ -164,15 +167,15 @@ export class InfrastructureClient {
     return HttpNamespace.fromHttpNamespaceAttributes(scope, "Namespace", {
       namespaceArn: StringParameter.valueFromLookup(
         scope,
-        `/${this.infrastructureStackId}/HttpNamespace/namespaceArn`,
+        namespaceArnParameterName(this.infrastructureStackId),
       ),
       namespaceId: StringParameter.valueFromLookup(
         scope,
-        `/${this.infrastructureStackId}/HttpNamespace/namespaceId`,
+        namespaceIdParameterName(this.infrastructureStackId),
       ),
       namespaceName: StringParameter.valueFromLookup(
         scope,
-        `/${this.infrastructureStackId}/HttpNamespace/namespaceName`,
+        namespaceNameParameterName(this.infrastructureStackId),
       ),
     });
   }
@@ -204,7 +207,7 @@ export class InfrastructureClient {
       "SslCert",
       StringParameter.valueFromLookup(
         scope,
-        `/${this.infrastructureStackId}/Certificate/certificateArn`,
+        certificateArnParameterName(this.infrastructureStackId),
       ),
     );
 
