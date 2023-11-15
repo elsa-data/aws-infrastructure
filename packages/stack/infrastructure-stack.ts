@@ -41,12 +41,15 @@ import {
 } from "./parameter-names";
 import { camelCase } from "./justCamelCase";
 
+export { InfrastructureClient, DnsResult } from "./infrastructure-client";
+
 export {
   InfrastructureStackProps,
   InfrastructureStackNamespaceProps,
   InfrastructureStackDnsProps,
   InfrastructureStackNetworkProps,
 } from "./infrastructure-stack-props";
+
 export {
   PostgresCommon,
   PostgresCommonMonitoring,
