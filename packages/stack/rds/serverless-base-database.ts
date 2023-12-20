@@ -1,6 +1,6 @@
 import { ISecurityGroup, IVpc, SecurityGroup } from "aws-cdk-lib/aws-ec2";
 import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
-import { ServerlessCluster } from "aws-cdk-lib/aws-rds";
+import { ClusterInstance, DatabaseCluster } from "aws-cdk-lib/aws-rds";
 import { Construct } from "constructs";
 import { aws_ec2 as ec2, aws_rds as rds, RemovalPolicy } from "aws-cdk-lib";
 import { BaseDatabase } from "./base-database";
@@ -19,7 +19,7 @@ type ServerlessBaseDatabaseProps = PostgresCommon & {
  * case representing a V2 Serverless Aurora (in postgres mode).
  */
 export class ServerlessBaseDatabase extends BaseDatabase {
-  private readonly _cluster: ServerlessCluster;
+  private readonly _cluster: DatabaseCluster;
   private readonly _securityGroup: SecurityGroup;
   private readonly _dsnWithTokens: string;
   private readonly _dsnNoPassword: string;
@@ -35,39 +35,6 @@ export class ServerlessBaseDatabase extends BaseDatabase {
     // for services that "can connect to database"
     this._securityGroup = this.createMembershipSecurityGroup(props.vpc);
 
-    this._cluster = new ServerlessCluster(this, "ServerlessCluster", {
-      vpc: props.vpc,
-      securityGroups: [this._securityGroup],
-      vpcSubnets: {
-        subnetType: props.makePubliclyReachable
-          ? ec2.SubnetType.PUBLIC
-          : ec2.SubnetType.PRIVATE_WITH_EGRESS,
-      },
-      engine: rds.DatabaseClusterEngine.auroraPostgres({
-        version: rds.AuroraPostgresEngineVersion.VER_14_7,
-      }),
-      // the default database to create in the cluster - we insist on it being named otherwise no default db is made
-      defaultDatabaseName: props.databaseName,
-      credentials: rds.Credentials.fromSecret(props.secret),
-      // destroy on remove tells us we don't really care much about the data (demo instances etc)
-      removalPolicy: props.destroyOnRemove
-        ? RemovalPolicy.DESTROY
-        : RemovalPolicy.SNAPSHOT,
-    });
-
-    // temporary fix to broken CDK constructs
-    // https://github.com/aws/aws-cdk/issues/20197#issuecomment-1272360016
-    {
-      const cfnDBCluster = this._cluster.node.children.find(
-        (node) => node instanceof rds.CfnDBCluster,
-      ) as rds.CfnDBCluster;
-      cfnDBCluster.serverlessV2ScalingConfiguration = {
-        minCapacity: props.minCapacity ?? 0.5,
-        maxCapacity: props.maxCapacity ?? rds.AuroraCapacityUnit.ACU_4,
-      };
-      cfnDBCluster.engineMode = undefined;
-    }
-
     let enableMonitoring;
     if (props.enableMonitoring) {
       const monitoringRole = this.createMonitoringRole();
@@ -82,12 +49,31 @@ export class ServerlessBaseDatabase extends BaseDatabase {
       };
     }
 
-    new rds.CfnDBInstance(this, "Writer", {
-      dbInstanceClass: "db.serverless",
-      dbClusterIdentifier: this._cluster.clusterIdentifier,
-      engine: "aurora-postgresql",
-      publiclyAccessible: props.makePubliclyReachable,
-      ...(enableMonitoring && { ...enableMonitoring }),
+    // Serverless V2 Cluster.
+    this._cluster = new DatabaseCluster(this, "Cluster", {
+      vpc: props.vpc,
+      vpcSubnets: {
+        subnetType: props.makePubliclyReachable
+          ? ec2.SubnetType.PUBLIC
+          : ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      },
+      securityGroups: [this._securityGroup],
+      credentials: rds.Credentials.fromSecret(props.secret),
+      // destroy on remove tells us we don't really care much about the data (demo instances etc)
+      removalPolicy: props.destroyOnRemove
+        ? RemovalPolicy.DESTROY
+        : RemovalPolicy.SNAPSHOT,
+      // the default database to create in the cluster - we insist on it being named otherwise no default db is made
+      defaultDatabaseName: props.databaseName,
+      engine: rds.DatabaseClusterEngine.auroraPostgres({
+        version: rds.AuroraPostgresEngineVersion.VER_15_4,
+      }),
+      serverlessV2MinCapacity: props.minCapacity ?? 0.5,
+      serverlessV2MaxCapacity:
+        props.maxCapacity ?? rds.AuroraCapacityUnit.ACU_4,
+      writer: ClusterInstance.serverlessV2("Writer", {
+        ...(enableMonitoring && { ...enableMonitoring }),
+      }),
     });
 
     this.applySecurityGroupRules(
