@@ -67,7 +67,7 @@ type EdgeDbServiceProps = EdgeDbServicePassthroughProps & {
 export class EdgeDbServiceConstruct extends Construct {
   // this construct is predicated on using the default EdgeDb port
   // so if you want to change this then you'll have to add some extra PORT settings in various places
-  private readonly EDGE_DB_PORT = 5656;
+  private readonly GEL_DB_PORT = 5656;
 
   private readonly _service: FargateService;
   private readonly _securityGroup: SecurityGroup;
@@ -107,27 +107,25 @@ export class EdgeDbServiceConstruct extends Construct {
     const containerName = "edge-db";
 
     const env: { [k: string]: string } = {
-      EDGEDB_DOCKER_LOG_LEVEL: "debug",
+      GEL_DOCKER_LOG_LEVEL: "debug",
       // the DSN (including postgres user/pw) pointing to the base database
-      EDGEDB_SERVER_BACKEND_DSN: props.baseDbDsn,
+      GEL_SERVER_BACKEND_DSN: props.baseDbDsn,
       // we allow the superuser name to be set
-      EDGEDB_SERVER_USER: props.superUser,
-      // we don't do edgedb certs at all - rely on self-signed always
+      GEL_SERVER_USER: props.superUser,
+      // we don't do gel certs at all - rely on self-signed always
       // when putting a TLS terminated network load balancer in front of this - we can
       // use a self-signed cert as the internal target TLS
       // NLBs are comfortable using self-signed certs purely for traffic encryption
       // https://kevin.burke.dev/kevin/aws-alb-validation-tls-reply/
       // that way we can avoid needing to manage custom certs/cas
-      EDGEDB_SERVER_TLS_CERT_MODE: "generate_self_signed",
+      GEL_SERVER_TLS_CERT_MODE: "generate_self_signed",
       // DO NOT ENABLE
-      // EDGEDB_SERVER_DEFAULT_AUTH_METHOD: "Trust"
+      // GEL_SERVER_DEFAULT_AUTH_METHOD: "Trust"
     };
 
     const secrets: { [k: string]: ecs.Secret } = {
       // CDK is smart enough to grant permissions to read these secrets to the execution role
-      EDGEDB_SERVER_PASSWORD: ecs.Secret.fromSecretsManager(
-        props.superUserSecret,
-      ),
+      GEL_SERVER_PASSWORD: ecs.Secret.fromSecretsManager(props.superUserSecret),
     };
 
     if (props.enableUiFeatureFlag) env.EDGEDB_SERVER_ADMIN_UI = "enabled";
@@ -135,17 +133,17 @@ export class EdgeDbServiceConstruct extends Construct {
     taskDefinition.addContainer(containerName, {
       // https://hub.docker.com/r/edgedb/edgedb/tags
       image: ecs.ContainerImage.fromRegistry(
-        `edgedb/edgedb:${props.edgeDbVersion}`,
+        `geldata/gel:${props.edgeDbVersion}`,
       ),
       environment: env,
       secrets: secrets,
       logging: LogDrivers.awsLogs({
-        streamPrefix: "edge-db",
+        streamPrefix: "gel",
         logGroup: clusterLogGroup,
       }),
       portMappings: [
         {
-          containerPort: this.EDGE_DB_PORT,
+          containerPort: this.GEL_DB_PORT,
           protocol: Protocol.TCP,
         },
       ],
@@ -199,7 +197,7 @@ export class EdgeDbServiceConstruct extends Construct {
         "Security group for resources that can communicate to the contained EdgeDb service",
     });
     // the ingress is self-referential - only allowing traffic from itself to the edge port
-    sg.addIngressRule(sg, ec2.Port.tcp(this.EDGE_DB_PORT));
+    sg.addIngressRule(sg, ec2.Port.tcp(this.GEL_DB_PORT));
     // the egress is also self-referential - and allowing outband traffic to anyone in the same
     // group (the all-traffic is safe because the other resources are responsible for setting their
     // ingress rules to a set port0
@@ -216,6 +214,6 @@ export class EdgeDbServiceConstruct extends Construct {
   }
 
   public get servicePort(): number {
-    return this.EDGE_DB_PORT;
+    return this.GEL_DB_PORT;
   }
 }

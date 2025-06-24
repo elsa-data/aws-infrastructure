@@ -15,7 +15,7 @@ type ServerlessBaseDatabaseProps = PostgresCommon & {
 };
 
 /**
- * A construct representing the base database we might use with EdgeDb - in this
+ * A construct representing the base database we might use with Gel - in this
  * case representing a V2 Serverless Aurora (in postgres mode).
  */
 export class ServerlessBaseDatabase extends BaseDatabase {
@@ -66,9 +66,9 @@ export class ServerlessBaseDatabase extends BaseDatabase {
       // the default database to create in the cluster - we insist on it being named otherwise no default db is made
       defaultDatabaseName: props.databaseName,
       engine: rds.DatabaseClusterEngine.auroraPostgres({
-        version: rds.AuroraPostgresEngineVersion.VER_15_4,
+        version: rds.AuroraPostgresEngineVersion.VER_17_4,
       }),
-      serverlessV2MinCapacity: props.minCapacity ?? 0.5,
+      serverlessV2MinCapacity: props.minCapacity ?? 0,
       serverlessV2MaxCapacity:
         props.maxCapacity ?? rds.AuroraCapacityUnit.ACU_4,
       writer: ClusterInstance.serverlessV2("Writer", {

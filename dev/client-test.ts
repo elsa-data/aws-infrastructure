@@ -1,4 +1,4 @@
-import { InfrastructureClient } from "elsa-data-aws-infrastructure-client";
+import { InfrastructureClient } from "elsa-data-aws-infrastructure/infrastructure-client";
 
 import * as cdk from "aws-cdk-lib";
 import { Stack, StackProps } from "aws-cdk-lib";
