@@ -16,13 +16,13 @@
     "clean": "git clean -fXd"
   },
   "dependencies": {
-    "aws-cdk": "2.115.0",
-    "aws-cdk-lib": "2.115.0",
-    "cdk-nag": "2.27.221",
-    "constructs": "10.3.0",
+    "aws-cdk": "2.1019.1",
+    "aws-cdk-lib": "2.202.0",
+    "cdk-nag": "2.36.24",
+    "constructs": "10.4.2",
     "elsa-data-aws-infrastructure": "link:../packages/stack"
   },
   "devDependencies": {
-    "@tsconfig/node18": "^18.2.2"
+    "@tsconfig/node22": "22.0.2"
   }
 }
