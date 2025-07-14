@@ -81,7 +81,7 @@ export class EdgeDbLoadBalancerUiConstruct extends Construct {
       // the TLS with our hostedCertificate
       protocol: Protocol.TLS,
       certificates: [props.hostedCertificate],
-      sslPolicy: SslPolicy.RECOMMENDED,
+      sslPolicy: SslPolicy.RECOMMENDED_TLS,
     });
 
     const tg = tlsListener.addTargets("TlsTargetGroup", {
