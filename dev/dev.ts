@@ -41,7 +41,7 @@ new InfrastructureStack(app, "ElsaDataDevInfrastructureStack", {
   dns: {
     hostedZoneName: "dev.umccr.org",
   },
-  databases: [
+  /*databases: [
     {
       postgresType: "postgres-serverless-2",
       name: "elsa_data_serverless_database",
@@ -51,15 +51,15 @@ new InfrastructureStack(app, "ElsaDataDevInfrastructureStack", {
         enablePerformanceInsights: true,
         monitoringInterval: Duration.seconds(60),
       },
-      makePubliclyReachable: false,
+      makePubliclyReachable: true,
       destroyOnRemove: true,
       edgeDb: {
-        version: "6.8",
+        version: "6.10",
         makePubliclyReachable: {
           urlPrefix: "elsa-data-gel-db",
         },
       },
     },
-  ],
+  ], */
   secretsPrefix: "ElsaDataDev", // pragma: allowlist secret
 });
