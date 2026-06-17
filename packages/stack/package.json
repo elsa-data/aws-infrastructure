@@ -35,7 +35,7 @@
     "constructs": "^10.4.2"
   },
   "devDependencies": {
-    "aws-cdk-lib": "2.202.0",
+    "aws-cdk-lib": "2.246.0",
     "constructs": "10.4.2",
     "jsii": "5.8.12",
     "jsii-pacmak": "1.112.0",
